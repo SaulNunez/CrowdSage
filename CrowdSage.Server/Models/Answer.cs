@@ -7,4 +7,5 @@ public class Answer
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset EditedAt { get; set; }
     public Question Question { get; set; }
+    public Guid QuestionId { get; set; }
 }
