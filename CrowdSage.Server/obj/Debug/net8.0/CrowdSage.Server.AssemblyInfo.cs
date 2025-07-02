@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CrowdSage.Server")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+497974f05834df8955985cf0f55c932e9db27192")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5747bebab34e15c59e46696d993d6e58c056a0dd")]
 [assembly: System.Reflection.AssemblyProductAttribute("CrowdSage.Server")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CrowdSage.Server")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
