@@ -1,0 +1,6 @@
+@CrowdSage.Server_HostAddress = http://localhost:5017
+
+GET {{CrowdSage.Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
