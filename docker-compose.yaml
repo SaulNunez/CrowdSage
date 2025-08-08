@@ -1,0 +1,28 @@
+services: 
+  web:
+    image: crowd-sage-web:latest
+    build:
+      context: CrowsSage.Server/.
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      ConnectionStrings__DefaultConnection: "Host=postgres;Database=${DATABASE_NAME};Username=postgres;Password=${DATABASE_PASSWORD}"
+      ConnectionStrings__RedisCacheConnection: redis
+    networks:
+      - backend
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - backend
+
+networks:
+  backend:
