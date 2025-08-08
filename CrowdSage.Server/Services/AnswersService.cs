@@ -5,7 +5,8 @@ namespace CrowdSage.Server.Services;
 
 public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
 {
-    public async Task AddAnswerAsync(Answer answer) {
+    public async Task<Answer> AddAnswerAsync(Answer answer)
+    {
         if (answer == null)
         {
             throw new ArgumentNullException(nameof(answer), "Question cannot be null.");
@@ -13,6 +14,8 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
         answer.CreatedAt = DateTimeOffset.UtcNow;
         dbContext.Answers.Add(answer);
         await dbContext.SaveChangesAsync();
+
+        return answer;
     }
 
     public async Task<IEnumerable<Answer>> GetAnswersForQuestion(Guid questionId)
@@ -46,7 +49,7 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
 
 public interface IAnswersService
 {
-    public Task AddAnswerAsync(Answer answer);
+    public Task<Answer> AddAnswerAsync(Answer answer);
     public Task<IEnumerable<Answer>> GetAnswersForQuestion(Guid questionId);
     public Task EditAnswer(Guid guid, Answer answer);
     public Task DeleteAnswer(Guid id);
