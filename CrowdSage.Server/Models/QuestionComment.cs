@@ -2,9 +2,9 @@ namespace CrowdSage.Server.Models;
 
 public class QuestionComment
 {
-    public int Id { get; set; }
-    public int QuestionId { get; set; }
-    public string CommentText { get; set; }
+    public Guid Id { get; set; }
+    public Guid QuestionId { get; set; }
+    public string Content { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset UpdatedAt { get; set; }
 
