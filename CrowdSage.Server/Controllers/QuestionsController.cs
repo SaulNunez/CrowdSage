@@ -7,7 +7,7 @@ namespace CrowdSage.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class QuestionController(QuestionsService questionsService) : ControllerBase
+    public class QuestionsController(QuestionsService questionsService) : ControllerBase
     {
         [HttpGet("{id}")]
         public IActionResult GetAction(string id)
