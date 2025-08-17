@@ -10,6 +10,8 @@ public class Question
     public string Content { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset EditedAt { get; set; }
+    public List<string> Tags { get; set; }
 
     public List<Answer> Answers { get; set; }
+    public List<QuestionComment> Comments { get; set; }
 }
