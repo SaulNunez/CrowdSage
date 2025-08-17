@@ -2,22 +2,22 @@ import React, { useState } from "react";
 import { AnswerCard } from "../Components/AnswerCard";
 import { CommentList } from "../Components/CommentList";
 import { CommentForm } from "../Components/CommentForm";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Loading } from "../Components/Loading";
+import { ServerError } from "../Components/ServerError";
+
+interface Question {
+  title: string,
+  content: string,
+  createdAt: Date,
+  editedAt: Date
+  tags: string[],
+  author: string,
+  comments: { id: number, author: string, content: string }[]
+}
+
 
 export default function QuestionPage() {
-  // Mock initial data
-  const [question, setQuestion] = useState({
-    id: 1,
-    title: "How to debounce an input in React with hooks?",
-    author: "alice",
-    postedAt: "Aug 7, 2025",
-    body:
-      "I'm building a search box and want to debounce user input before firing an API call. What's the best pattern using React hooks?",
-    tags: ["react", "hooks", "debounce"],
-    comments: [
-      { id: 101, author: "bob", text: "What do you want to debounce — the input or the API call?" },
-    ],
-  });
-
   const [answers, setAnswers] = useState([
     {
       id: 11,
@@ -41,6 +41,26 @@ export default function QuestionPage() {
     },
   ]);
 
+  const queryClient = useQueryClient();
+
+  const { isPending, error, data: question } = useQuery<Question>({
+    queryKey: ["question", "1"],
+    queryFn: () => 
+      fetch("/api/question/1").then((res) => res.json()),
+  });
+
+  const addAnswerMutation = useMutation({
+    mutationFn: (newAnswer) => 
+      fetch("/api/question/1/answers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newAnswer),
+      }).then((res) => res.json()),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["question", "1"] });
+    },
+  })
+
   // UI state
   const [newAnswerText, setNewAnswerText] = useState("");
 
@@ -60,21 +80,20 @@ export default function QuestionPage() {
 
   function addAnswer() {
     if (!newAnswerText.trim()) return;
-    const answer = {
-      id: Date.now(),
-      author: "you",
-      postedAt: new Date().toLocaleDateString(),
-      body: newAnswerText.trim(),
-      comments: [],
-      votes: 0,
-    };
-    setAnswers((a) => [answer, ...a]);
+    
+    addAnswerMutation.mutate({
+      content: newAnswerText.trim() 
+    });
+
     setNewAnswerText("");
   }
 
   function upvoteAnswer(id) {
     setAnswers((a) => a.map((ans) => (ans.id === id ? { ...ans, votes: ans.votes + 1 } : ans)));
   }
+
+  if (isPending) return <Loading />;
+  if (error) return <ServerError />;
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -84,7 +103,7 @@ export default function QuestionPage() {
           <div className="mt-2 flex items-center text-sm text-gray-600 gap-3">
             <span>asked by <strong className="text-gray-800">{question.author}</strong></span>
             <span>•</span>
-            <span>{question.postedAt}</span>
+            <span>{question.createdAt.toDateString()}</span>
             <div className="ml-auto flex gap-2">
               <button className="px-3 py-1 rounded-md border text-sm">Edit</button>
               <button className="px-3 py-1 rounded-md bg-red-50 text-red-700 text-sm">Follow</button>
@@ -94,7 +113,7 @@ export default function QuestionPage() {
 
         <main className="bg-white rounded-lg shadow-sm p-6">
           <section className="prose max-w-none">
-            <p>{question.body}</p>
+            <p>{question.content}</p>
           </section>
 
           <div className="mt-4 flex flex-wrap gap-2">
@@ -107,7 +126,7 @@ export default function QuestionPage() {
 
           <div className="mt-6 border-t pt-4">
             <h3 className="text-lg font-medium">Comments</h3>
-            <CommentList comments={question.comments} />
+            <CommentList questionId="1"/>
             <CommentForm onSubmit={(text) => addComment({ targetType: "question", text })} />
           </div>
         </main>

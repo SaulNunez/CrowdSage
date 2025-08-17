@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { CommentList } from './CommentList';
+import { CommentForm } from './CommentForm';
 
 export function AnswerCard({ answer, onComment, onUpvote }) {
   const [showCommentForm, setShowCommentForm] = useState(false);

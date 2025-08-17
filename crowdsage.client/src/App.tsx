@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import './App.css';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 interface Forecast {
     date: string;
@@ -8,6 +9,7 @@ interface Forecast {
     summary: string;
 }
 
+const queryClient = new QueryClient();
 function App() {
     const [forecasts, setForecasts] = useState<Forecast[]>();
 
@@ -39,11 +41,13 @@ function App() {
         </table>;
 
     return (
-        <div>
-            <h1 id="tableLabel">Weather forecast</h1>
-            <p>This component demonstrates fetching data from the server.</p>
-            {contents}
-        </div>
+        <QueryClientProvider client={queryClient}>
+            <div>
+                <h1 id="tableLabel">Weather forecast</h1>
+                <p>This component demonstrates fetching data from the server.</p>
+                {contents}
+            </div>
+        </QueryClientProvider>
     );
 
     async function populateWeatherData() {
