@@ -8,4 +8,6 @@ public class Answer
     public DateTimeOffset EditedAt { get; set; }
     public Question Question { get; set; }
     public Guid QuestionId { get; set; }
+    public List<AnswerVote> Votes { get; set; }
+    public List<AnswerComment> Comments { get; set; }
 }

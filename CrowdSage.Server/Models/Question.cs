@@ -14,4 +14,5 @@ public class Question
 
     public List<Answer> Answers { get; set; }
     public List<QuestionComment> Comments { get; set; }
+    public List<QuestionVote> Votes { get; set; }
 }
