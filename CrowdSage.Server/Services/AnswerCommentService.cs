@@ -1,33 +1,37 @@
 using CrowdSage.Server.Models;
+using CrowdSage.Server.Models.InsertUpdate;
 using Microsoft.EntityFrameworkCore;
 
 namespace CrowdSage.Server.Services;
 
 public interface IAnswerCommentService
 {
-    Task<AnswerComment> AddCommentAsync(AnswerComment comment, Guid answerId);
+    Task<AnswerComment> AddCommentAsync(AnswerCommentDto comment, Guid answerId);
     Task DeleteCommentAsync(Guid id);
-    Task EditCommentAsync(Guid id, AnswerComment updatedComment);
+    Task EditCommentAsync(Guid id, AnswerCommentDto updatedComment);
     Task<AnswerComment> GetCommentByIdAsync(Guid id);
     Task<List<AnswerComment>> GetCommentsForAnswer(Guid answerId);
 }
 
 public class AnswerCommentService(CrowdsageDbContext dbContext) : IAnswerCommentService
 {
-    public async Task<AnswerComment> AddCommentAsync(AnswerComment comment, Guid answerId)
+    public async Task<AnswerComment> AddCommentAsync(AnswerCommentDto comment, Guid answerId)
     {
         if (comment == null)
         {
             throw new ArgumentNullException(nameof(comment), "Comment cannot be null.");
         }
 
-        // Simulate adding the comment to a data store
-        comment.CreatedAt = DateTime.UtcNow;
-        comment.AnswerId = answerId;
-        dbContext.AnswerComments.Add(comment);
+        var answerCommentEntity = new AnswerComment
+        {
+            Content = comment.Content,
+            CreatedAt = DateTime.UtcNow,
+        };
+
+        dbContext.AnswerComments.Add(answerCommentEntity);
         await dbContext.SaveChangesAsync();
 
-        return comment;
+        return answerCommentEntity;
     }
 
     public async Task<AnswerComment> GetCommentByIdAsync(Guid id)
@@ -36,7 +40,7 @@ public class AnswerCommentService(CrowdsageDbContext dbContext) : IAnswerComment
         return comment;
     }
 
-    public async Task EditCommentAsync(Guid id, AnswerComment updatedComment)
+    public async Task EditCommentAsync(Guid id, AnswerCommentDto updatedComment)
     {
         if (updatedComment == null)
         {

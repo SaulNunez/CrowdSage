@@ -1,6 +1,7 @@
 using CrowdSage.Server.Models;
 using Microsoft.AspNetCore.Mvc;
 using CrowdSage.Server.Services;
+using CrowdSage.Server.Models.InsertUpdate;
 
 namespace CrowdSage.Server.Controllers;
 
@@ -9,7 +10,7 @@ namespace CrowdSage.Server.Controllers;
 public class QuestionCommentsController(QuestionCommentService questionCommentService) : ControllerBase
 {
     [HttpPost]
-    public async Task<IActionResult> CreateComment([FromBody] QuestionComment comment, Guid questionId)
+    public async Task<IActionResult> CreateComment([FromBody] QuestionCommentDto comment, Guid questionId)
     {
         if (comment == null || string.IsNullOrWhiteSpace(comment.Content))
         {
@@ -17,10 +18,8 @@ public class QuestionCommentsController(QuestionCommentService questionCommentSe
         }
         try
         {
-            // Simulate adding the comment to a data store
-            comment.CreatedAt = DateTime.UtcNow;
-            await questionCommentService.AddCommnentAsync(comment, questionId);
-            return new CreatedAtActionResult(nameof(CreateComment), nameof(QuestionCommentsController), new { id = comment.Id }, comment);
+            var questionCommentEntity = await questionCommentService.AddCommnentAsync(comment, questionId);
+            return new CreatedAtActionResult(nameof(CreateComment), nameof(QuestionCommentsController), new { id = questionCommentEntity.Id }, comment);
         }
         catch (ArgumentNullException ex)
         {
@@ -47,7 +46,7 @@ public class QuestionCommentsController(QuestionCommentService questionCommentSe
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> EditComment(Guid id, [FromBody] QuestionComment updated)
+    public async Task<IActionResult> EditComment(Guid id, [FromBody] QuestionCommentDto updated)
     {
         if (updated == null || string.IsNullOrWhiteSpace(updated.Content))
         {

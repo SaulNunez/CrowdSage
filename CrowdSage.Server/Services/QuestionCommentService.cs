@@ -1,33 +1,37 @@
 using CrowdSage.Server.Models;
+using CrowdSage.Server.Models.InsertUpdate;
 using Microsoft.EntityFrameworkCore;
 
 namespace CrowdSage.Server.Services;
 
 public interface IQuestionCommentService
 {
-    Task<QuestionComment> AddCommnentAsync(QuestionComment comment, Guid questionId);
+    Task<QuestionComment> AddCommnentAsync(QuestionCommentDto comment, Guid questionId);
     Task DeleteCommentAsync(Guid id);
-    Task EditCommentAsync(Guid id, QuestionComment updatedComment);
+    Task EditCommentAsync(Guid id, QuestionCommentDto updatedComment);
     Task<QuestionComment> GetCommentByIdAsync(Guid id);
     Task<List<QuestionComment>> GetCommentsForQuestion(Guid questionId);
 }
 
 public class QuestionCommentService(CrowdsageDbContext dbContext) : IQuestionCommentService
 {
-    public async Task<QuestionComment> AddCommnentAsync(QuestionComment comment, Guid questionId)
+    public async Task<QuestionComment> AddCommnentAsync(QuestionCommentDto comment, Guid questionId)
     {
         if (comment == null)
         {
             throw new ArgumentNullException(nameof(comment), "Comment cannot be null.");
         }
 
-        // Simulate adding the comment to a data store
-        comment.CreatedAt = DateTime.UtcNow;
-        comment.QuestionId = questionId;
-        dbContext.QuestionComments.Add(comment);
+        var questionCommentEntity = new QuestionComment
+        {
+            Content = comment.Content,
+            CreatedAt = DateTime.UtcNow,
+        };
+
+        dbContext.QuestionComments.Add(questionCommentEntity);
         await dbContext.SaveChangesAsync();
 
-        return comment;
+        return questionCommentEntity;
     }
 
     public async Task<QuestionComment> GetCommentByIdAsync(Guid id)
@@ -40,7 +44,7 @@ public class QuestionCommentService(CrowdsageDbContext dbContext) : IQuestionCom
         return comment;
     }
 
-    public async Task EditCommentAsync(Guid id, QuestionComment updatedComment)
+    public async Task EditCommentAsync(Guid id, QuestionCommentDto updatedComment)
     {
         if (updatedComment == null)
         {

@@ -1,21 +1,31 @@
 ﻿using CrowdSage.Server.Models;
+using CrowdSage.Server.Models.InsertUpdate;
 using Microsoft.EntityFrameworkCore;
 
 namespace CrowdSage.Server.Services;
 
 public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
 {
-    public async Task<Answer> AddAnswerAsync(Answer answer)
+    public async Task<Answer> AddAnswerAsync(AnswerDto answer)
     {
         if (answer == null)
         {
             throw new ArgumentNullException(nameof(answer), "Question cannot be null.");
         }
-        answer.CreatedAt = DateTimeOffset.UtcNow;
-        dbContext.Answers.Add(answer);
+
+        //TODO: Vote question from the user that posted it
+        Answer answerEntity = new()
+        {
+            Content = answer.Content,
+            CreatedAt = DateTime.UtcNow,
+            EditedAt = DateTime.UtcNow,
+            //Votes = new List<AnswerVote>(),
+        };
+
+        dbContext.Answers.Add(answerEntity);
         await dbContext.SaveChangesAsync();
 
-        return answer;
+        return answerEntity;
     }
 
     public async Task<IEnumerable<Answer>> GetAnswersForQuestion(Guid questionId)
@@ -25,7 +35,7 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
             .ToListAsync();
     }
 
-    public async Task EditAnswer(Guid guid, Answer answer)
+    public async Task EditAnswer(Guid guid, AnswerDto answer)
     {
         if (answer == null)
         {
@@ -49,7 +59,7 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
 
 public interface IAnswersService
 {
-    public Task<Answer> AddAnswerAsync(Answer answer);
+    public Task<Answer> AddAnswerAsync(AnswerDto answer);
     public Task<IEnumerable<Answer>> GetAnswersForQuestion(Guid questionId);
     public Task EditAnswer(Guid guid, Answer answer);
     public Task DeleteAnswer(Guid id);

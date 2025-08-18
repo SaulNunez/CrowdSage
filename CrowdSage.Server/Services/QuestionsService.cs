@@ -1,4 +1,5 @@
 ﻿using CrowdSage.Server.Models;
+using CrowdSage.Server.Models.InsertUpdate;
 
 namespace CrowdSage.Server.Services;
 
@@ -9,18 +10,29 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
         return dbContext.Questions.Find(id) ?? throw new KeyNotFoundException($"Question with ID {id} not found.");
     }
 
-    public async Task AddQuestionAsync(Question question)
+    public async Task<Question> AddQuestionAsync(QuestionDto question)
     {
         if (question == null)
         {
             throw new ArgumentNullException(nameof(question), "Question cannot be null.");
         }
-        question.CreatedAt = DateTimeOffset.UtcNow;
-        dbContext.Questions.Add(question);
+        // Add upvote from question author
+        var questionEntity = new Question
+        {
+            Title = question.Title,
+            Content = question.Content,
+            CreatedAt = DateTimeOffset.UtcNow,
+            EditedAt = DateTimeOffset.UtcNow,
+            //Votes = new List<QuestionVote>(),
+        };
+
+        dbContext.Questions.Add(questionEntity);
         await dbContext.SaveChangesAsync();
+
+        return questionEntity;
     }
 
-    public async Task EditQuestion(Guid guid, Question question)
+    public async Task EditQuestion(Guid guid, QuestionDto question)
     {
         if (question == null)
         {
@@ -44,7 +56,7 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
 public interface IQuestionsService
 {
     public Question GetQuestionById(Guid id);
-    public Task AddQuestionAsync(Question question);
-    public Task EditQuestion(Guid guid, Question question);
+    public Task<Question> AddQuestionAsync(QuestionDto question);
+    public Task EditQuestion(Guid guid, QuestionDto question);
     public Task DeleteQuestion(Guid id);
 }

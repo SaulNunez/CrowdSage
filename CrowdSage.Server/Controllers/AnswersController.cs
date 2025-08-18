@@ -2,6 +2,7 @@ using CrowdSage.Server.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using CrowdSage.Server.Services;
+using CrowdSage.Server.Models.InsertUpdate;
 
 namespace CrowdSage.Server.Controllers;
 
@@ -10,7 +11,7 @@ namespace CrowdSage.Server.Controllers;
 public class AnswersController(AnswersService answersService) : ControllerBase
 {
     [HttpPost]
-    public async Task<IActionResult> CreateAnswerAsync([FromBody] Answer answer, Guid questionId)
+    public async Task<IActionResult> CreateAnswerAsync([FromBody] AnswerDto answer)
     {
         if (answer == null || string.IsNullOrWhiteSpace(answer.Content))
         {
@@ -18,13 +19,8 @@ public class AnswersController(AnswersService answersService) : ControllerBase
         }
         try
         {
-            // Simulate adding the answer to a data store
-            answer.Id = Guid.NewGuid();
-            answer.CreatedAt = DateTime.UtcNow;
-            answer.QuestionId = questionId;
-            await answersService.AddAnswerAsync(answer);
-
-            return new CreatedAtActionResult("GetAnswer", "Answer", new { id = answer.Id }, answer);
+            var answerEntity = await answersService.AddAnswerAsync(answer);
+            return new CreatedAtActionResult("GetAnswer", "Answer", new { id = answerEntity.Id }, answer);
         }
         catch (ArgumentNullException ex)
         {
@@ -51,7 +47,7 @@ public class AnswersController(AnswersService answersService) : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> EditAnswer(Guid id, [FromBody] Answer answer)
+    public async Task<IActionResult> EditAnswer(Guid id, [FromBody] AnswerDto answer)
     {
         if (answer == null || string.IsNullOrWhiteSpace(answer.Content))
         {
