@@ -16,31 +16,15 @@ interface Question {
   comments: { id: number, author: string, content: string }[]
 }
 
+interface Answer {
+  id: string,
+  content: string,
+  createdAt: Date,
+  editedAt: Date,
+  author: string,
+}
 
 export default function QuestionPage() {
-  const [answers, setAnswers] = useState([
-    {
-      id: 11,
-      author: "carol",
-      postedAt: "Aug 7, 2025",
-      body:
-        "Use a custom useDebounce hook that returns the debounced value, then watch that with useEffect to call the API.",
-      comments: [
-        { id: 201, author: "dave", text: "Careful with stale closures — include deps." },
-      ],
-      votes: 12,
-    },
-    {
-      id: 12,
-      author: "erin",
-      postedAt: "Aug 7, 2025",
-      body:
-        "Alternatively, use lodash.debounce directly inside useEffect and cleanup on unmount.",
-      comments: [],
-      votes: 3,
-    },
-  ]);
-
   const queryClient = useQueryClient();
 
   const { isPending, error, data: question } = useQuery<Question>({
@@ -49,9 +33,15 @@ export default function QuestionPage() {
       fetch("/api/question/1").then((res) => res.json()),
   });
 
+  const { isPending : questionCommentsIsPending, error : questionCommentError, data : questionCommentData } = useQuery<Answer[]>({
+    queryKey: ["question_comment", "1"],
+    queryFn: () => 
+      fetch("/api/questions/1/comments").then((res) => res.json()),
+  });
+
   const addAnswerMutation = useMutation({
     mutationFn: (newAnswer) => 
-      fetch("/api/question/1/answers", {
+      fetch("/api/questions/1/answers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newAnswer),
@@ -59,7 +49,25 @@ export default function QuestionPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["question", "1"] });
     },
-  })
+  });
+
+  const addCommentMutation = useMutation({
+    mutationFn: (newAnswer) => 
+      fetch("/api/questions/1/comments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newAnswer),
+      }).then((res) => res.json()),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["question_comment", "1"] });
+    },
+  });
+
+  const { isPending : answersIsPending, error : answersError, data : answerData } = useQuery<Answer[]>({
+    queryKey: ["answers", "1"],
+    queryFn: () => 
+      fetch("/api/questions/1/answers").then((res) => res.json()),
+  });
 
   // UI state
   const [newAnswerText, setNewAnswerText] = useState("");
@@ -78,14 +86,25 @@ export default function QuestionPage() {
     }
   }
 
+  function addQuestionComment(text: string) {
+    addCommentMutation.mutate({ content: text },
+    {
+    onSuccess: () => {
+      setNewAnswerText("");
+    }});
+  }
+
   function addAnswer() {
     if (!newAnswerText.trim()) return;
     
     addAnswerMutation.mutate({
       content: newAnswerText.trim() 
-    });
-
-    setNewAnswerText("");
+    },
+  {
+    onSuccess: () => {
+      setNewAnswerText("");
+    }
+  });
   }
 
   function upvoteAnswer(id) {
@@ -126,20 +145,19 @@ export default function QuestionPage() {
 
           <div className="mt-6 border-t pt-4">
             <h3 className="text-lg font-medium">Comments</h3>
-            <CommentList questionId="1"/>
-            <CommentForm onSubmit={(text) => addComment({ targetType: "question", text })} />
+            <CommentList comments={questionCommentData}/>
+            <CommentForm onSubmit={(text) => addQuestionComment(text))} />
           </div>
         </main>
 
         <section className="mt-8">
-          <h2 className="text-2xl font-semibold">{answers.length} Answers</h2>
+          <h2 className="text-2xl font-semibold">{answerData.length} Answers</h2>
 
           <div className="mt-4 space-y-4">
-            {answers.map((a) => (
+            {answerData.map((a) => (
               <AnswerCard
                 key={a.id}
                 answer={a}
-                onComment={(text) => addComment({ targetType: "answer", targetId: a.id, text })}
                 onUpvote={() => upvoteAnswer(a.id)}
               />
             ))}

@@ -3,24 +3,7 @@ import React from 'react';
 import { Loading } from './Loading';
 import { ServerError } from './ServerError';
 
-interface Answer {
-  id: string,
-  content: string,
-  createdAt: Date,
-  editedAt: Date,
-  author: string,
-}
-
-export function CommentList({questionId : string}) {
-    const { isPending, error, data: comments } = useQuery<Answer[]>({
-      queryKey: ["comments_question", questionId],
-      queryFn: () => 
-        fetch("/api/question/1/comments").then((res) => res.json()),
-    });
-
-  if (isPending) return <Loading />;
-  if (error) return <ServerError />;
-
+export function CommentList({comments}) {
   if (!comments.length) return <div className="text-sm text-gray-500 mt-2">No comments yet.</div>;
   return (
     <ul className="mt-2 space-y-2">

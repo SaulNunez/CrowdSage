@@ -1,8 +1,37 @@
 import React, { useState } from 'react';
 import { CommentList } from './CommentList';
 import { CommentForm } from './CommentForm';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-export function AnswerCard({ answer, onComment, onUpvote }) {
+interface AnswerComment {
+
+}
+
+export function AnswerCard({ answer, onUpvote }) {
+  const queryClient = useQueryClient();
+
+  const { isPending, error, data: answerCommentData } = useQuery<AnswerComment[]>({
+    queryKey: ["answer_comment", "1"],
+    queryFn: () =>
+      fetch("/api/questions/1/answers/1/comments").then((res) => res.json()),
+  });
+
+  const addCommentMutation = useMutation({
+    mutationFn: (newAnswer) =>
+      fetch("/api/questions/1/answers/1/comments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newAnswer),
+      }).then((res) => res.json()),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["answer_comment", "1"] });
+    },
+  });
+
+  const createComment = (text) => {
+    addCommentMutation.mutate({ content: text });
+  };
+
   const [showCommentForm, setShowCommentForm] = useState(false);
 
   return (
@@ -31,11 +60,11 @@ export function AnswerCard({ answer, onComment, onUpvote }) {
 
         <div className="mt-4 border-t pt-3">
           <h4 className="text-sm font-medium">Comments</h4>
-          <CommentList comments={answer.comments} />
+          <CommentList comments={answerCommentData} />
           {showCommentForm ? (
             <CommentForm
               onSubmit={(text) => {
-                onComment(text);
+                createComment(text);
                 setShowCommentForm(false);
               }}
             />
