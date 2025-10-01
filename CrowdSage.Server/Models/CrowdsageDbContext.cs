@@ -1,8 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace CrowdSage.Server.Models;
 
-public class CrowdsageDbContext(DbContextOptions<CrowdsageDbContext> options) : DbContext(options)
+public class CrowdsageDbContext(DbContextOptions<CrowdsageDbContext> options) : IdentityDbContext<CrowdsageUser>(options)
 {
     public DbSet<Question> Questions { get; set; }
     public DbSet<Answer> Answers { get; set; }
