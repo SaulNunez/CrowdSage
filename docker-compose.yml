@@ -1,8 +1,8 @@
 services:
   crowdsage.server:
     build:
-      context: CrowdSage.Server/.
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: CrowdSage.Server/Dockerfile
     ports:
       - "8080:8080"
     volumes:
