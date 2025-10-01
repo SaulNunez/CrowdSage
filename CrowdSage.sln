@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.12.35514.174 d17.12
+VisualStudioVersion = 17.12.35514.174
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CrowdSage.Server", "CrowdSage.Server\CrowdSage.Server.csproj", "{C4EDF1D1-F760-4B64-B149-F1FD4569C251}"
 EndProject
 Project("{54A90642-561A-4BB1-A94E-469ADEE60C69}") = "crowdsage.client", "crowdsage.client\crowdsage.client.esproj", "{263340B2-D05D-4864-82A6-DF526D574C24}"
+EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{89073940-D188-4F12-AE7A-BB229CE62C4F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,6 +25,10 @@ Global
 		{263340B2-D05D-4864-82A6-DF526D574C24}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{263340B2-D05D-4864-82A6-DF526D574C24}.Release|Any CPU.Build.0 = Release|Any CPU
 		{263340B2-D05D-4864-82A6-DF526D574C24}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{89073940-D188-4F12-AE7A-BB229CE62C4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89073940-D188-4F12-AE7A-BB229CE62C4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89073940-D188-4F12-AE7A-BB229CE62C4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89073940-D188-4F12-AE7A-BB229CE62C4F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

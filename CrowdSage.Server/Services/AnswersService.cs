@@ -61,6 +61,6 @@ public interface IAnswersService
 {
     public Task<Answer> AddAnswerAsync(AnswerDto answer);
     public Task<IEnumerable<Answer>> GetAnswersForQuestion(Guid questionId);
-    public Task EditAnswer(Guid guid, Answer answer);
+    public Task EditAnswer(Guid guid, AnswerDto answer);
     public Task DeleteAnswer(Guid id);
 }

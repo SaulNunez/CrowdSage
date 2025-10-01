@@ -1,0 +1,29 @@
+services:
+  crowdsage.server:
+    build:
+      context: CrowdSage.Server/.
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/app
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=postgres;Database=${DATABASE_NAME};Username=postgres;Password=${DATABASE_PASSWORD}"
+      ConnectionStrings__RedisCacheConnection: redis
+    networks:
+      - backend
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    volumes:
+      - crowdsage_db:/var/lib/postgresql/data
+    networks:
+      - backend
+
+networks:
+  backend:
+
+volumes:
+  crowdsage_db:

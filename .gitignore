@@ -297,3 +297,5 @@ __pycache__/
 
 /crowdsage.client/obj/
 /CrowdSage.Server/obj/
+/.env
+/.env
