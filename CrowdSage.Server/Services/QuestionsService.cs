@@ -1,16 +1,32 @@
 ﻿using CrowdSage.Server.Models;
 using CrowdSage.Server.Models.InsertUpdate;
+using CrowdSage.Server.Models.Outputs;
 
 namespace CrowdSage.Server.Services;
 
 public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
 {
-    public Question GetQuestionById(Guid id)
+    public QuestionDto GetQuestionById(Guid id)
     {
-        return dbContext.Questions.Find(id) ?? throw new KeyNotFoundException($"Question with ID {id} not found.");
+        var question = dbContext.Questions.Find(id) ?? throw new KeyNotFoundException($"Question with ID {id} not found.");
+
+        return new QuestionDto
+        {
+            Id = question.Id,
+            Content = question.Content,
+            CreatedAt = question.CreatedAt,
+            UpdatedAt = question.UpdatedAt,
+            Bookmarked = false,
+            Votes = 1,
+            Author = new AuthorDto
+            {
+                Id = question.Author.Id,
+                UserName = question.Author.UserName
+            }
+        };
     }
 
-    public async Task<Question> AddQuestionAsync(QuestionDto question)
+    public async Task<QuestionDto> AddQuestionAsync(QuestionPayload question, string userId)
     {
         if (question == null)
         {
@@ -22,17 +38,35 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
             Title = question.Title,
             Content = question.Content,
             CreatedAt = DateTimeOffset.UtcNow,
-            EditedAt = DateTimeOffset.UtcNow,
-            //Votes = new List<QuestionVote>(),
+            UpdatedAt = DateTimeOffset.UtcNow,
         };
+
+        questionEntity.Votes.Add(new QuestionVote
+        {
+            Vote = Models.Enums.VoteValue.Upvote,
+            UserId = userId
+        });
 
         dbContext.Questions.Add(questionEntity);
         await dbContext.SaveChangesAsync();
 
-        return questionEntity;
+        return new QuestionDto
+        {
+            Id = questionEntity.Id,
+            Content = questionEntity.Content,
+            CreatedAt = questionEntity.CreatedAt,
+            UpdatedAt = questionEntity.UpdatedAt,
+            Bookmarked = false,
+            Votes = 1,
+            Author = new AuthorDto
+            {
+                Id = questionEntity.Author.Id,
+                UserName = questionEntity.Author.UserName
+            }
+        };
     }
 
-    public async Task EditQuestion(Guid guid, QuestionDto question)
+    public async Task EditQuestion(Guid guid, QuestionPayload question)
     {
         if (question == null)
         {
@@ -41,7 +75,7 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
         var existingQuestion = dbContext.Questions.Find(guid) ?? throw new KeyNotFoundException($"Question with ID {guid} not found.");
         existingQuestion.Title = question.Title;
         existingQuestion.Content = question.Content;
-        existingQuestion.EditedAt = DateTimeOffset.UtcNow;
+        existingQuestion.UpdatedAt = DateTimeOffset.UtcNow;
         await dbContext.SaveChangesAsync();
     }
 
@@ -55,8 +89,8 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
 
 public interface IQuestionsService
 {
-    public Question GetQuestionById(Guid id);
-    public Task<Question> AddQuestionAsync(QuestionDto question);
-    public Task EditQuestion(Guid guid, QuestionDto question);
+    public QuestionDto GetQuestionById(Guid id);
+    public Task<QuestionDto> AddQuestionAsync(QuestionPayload question, string userId);
+    public Task EditQuestion(Guid guid, QuestionPayload question);
     public Task DeleteQuestion(Guid id);
 }

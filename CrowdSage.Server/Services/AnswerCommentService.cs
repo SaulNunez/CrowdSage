@@ -1,21 +1,22 @@
 using CrowdSage.Server.Models;
 using CrowdSage.Server.Models.InsertUpdate;
+using CrowdSage.Server.Models.Outputs;
 using Microsoft.EntityFrameworkCore;
 
 namespace CrowdSage.Server.Services;
 
 public interface IAnswerCommentService
 {
-    Task<AnswerComment> AddCommentAsync(AnswerCommentDto comment, Guid answerId);
+    Task<AnswerCommentDto> AddCommentAsync(AnswerCommentPayload comment, Guid answerId, string userId);
     Task DeleteCommentAsync(Guid id);
-    Task EditCommentAsync(Guid id, AnswerCommentDto updatedComment);
-    Task<AnswerComment> GetCommentByIdAsync(Guid id);
-    Task<List<AnswerComment>> GetCommentsForAnswer(Guid answerId);
+    Task EditCommentAsync(Guid id, AnswerCommentPayload updatedComment);
+    Task<AnswerCommentDto> GetCommentByIdAsync(Guid id);
+    Task<List<AnswerCommentDto>> GetCommentsForAnswer(Guid answerId);
 }
 
 public class AnswerCommentService(CrowdsageDbContext dbContext) : IAnswerCommentService
 {
-    public async Task<AnswerComment> AddCommentAsync(AnswerCommentDto comment, Guid answerId)
+    public async Task<AnswerCommentDto> AddCommentAsync(AnswerCommentPayload comment, Guid answerId, string userId)
     {
         if (comment == null)
         {
@@ -26,21 +27,46 @@ public class AnswerCommentService(CrowdsageDbContext dbContext) : IAnswerComment
         {
             Content = comment.Content,
             CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            AuthorId = userId
         };
 
         dbContext.AnswerComments.Add(answerCommentEntity);
         await dbContext.SaveChangesAsync();
 
-        return answerCommentEntity;
+        return new AnswerCommentDto
+        {
+            Id = answerCommentEntity.Id,
+            Content = answerCommentEntity.Content,
+            CreatedAt = answerCommentEntity.CreatedAt,
+            UpdatedAt = answerCommentEntity.UpdatedAt,
+            Author = new AuthorDto
+            {
+                Id = answerCommentEntity.Author.Id,
+                UserName = answerCommentEntity.Author.UserName
+            }
+        };
     }
 
-    public async Task<AnswerComment> GetCommentByIdAsync(Guid id)
+    public async Task<AnswerCommentDto> GetCommentByIdAsync(Guid id)
     {
         var comment = await dbContext.AnswerComments.FindAsync(id) ?? throw new KeyNotFoundException($"Comment with ID {id} not found.");
-        return comment;
+
+        return new AnswerCommentDto
+        {
+            Id = comment.Id,
+            Content = comment.Content,
+            CreatedAt = comment.CreatedAt,
+            UpdatedAt = comment.UpdatedAt,
+            Author = new AuthorDto
+            {
+                Id = comment.Author.Id,
+                UserName = comment.Author.UserName
+            }
+        };
     }
 
-    public async Task EditCommentAsync(Guid id, AnswerCommentDto updatedComment)
+    public async Task EditCommentAsync(Guid id, AnswerCommentPayload updatedComment)
     {
         if (updatedComment == null)
         {
@@ -62,12 +88,24 @@ public class AnswerCommentService(CrowdsageDbContext dbContext) : IAnswerComment
         await dbContext.SaveChangesAsync();
     }
 
-    public async Task<List<AnswerComment>> GetCommentsForAnswer(Guid answerId)
+    public async Task<List<AnswerCommentDto>> GetCommentsForAnswer(Guid answerId)
     {
         var comments = await dbContext.AnswerComments
             .Where(c => c.AnswerId == answerId)
+            .Include(c => c.Author)
             .ToListAsync();
 
-        return comments;
+        return [.. comments.Select(comment => new AnswerCommentDto
+            {
+                Id = comment.Id,
+                Content = comment.Content,
+                CreatedAt = comment.CreatedAt,
+                UpdatedAt = comment.UpdatedAt,
+                Author = new AuthorDto
+                {
+                    Id = comment.Author.Id,
+                    UserName = comment.Author.UserName
+                }
+            })];
     }
 }

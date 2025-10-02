@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using CrowdSage.Server.Services;
 using System.Threading.Tasks;
 using CrowdSage.Server.Models.InsertUpdate;
+using System.Security.Claims;
 
 namespace CrowdSage.Server.Controllers;
 
@@ -12,7 +13,7 @@ namespace CrowdSage.Server.Controllers;
 public class AnswerCommentsController(AnswerCommentService answerCommentService) : ControllerBase
 {
     [HttpPost]
-    public async Task<IActionResult> CreateComment([FromBody] AnswerCommentDto comment, Guid answerId)
+    public async Task<IActionResult> CreateComment([FromBody] AnswerCommentPayload comment, Guid answerId)
     {
         if (comment == null || string.IsNullOrWhiteSpace(comment.Content))
         {
@@ -20,8 +21,8 @@ public class AnswerCommentsController(AnswerCommentService answerCommentService)
         }
         try
         {
-
-            var answerCommentEntity = await answerCommentService.AddCommentAsync(comment, answerId);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var answerCommentEntity = await answerCommentService.AddCommentAsync(comment, answerId, userId);
             return new CreatedAtActionResult(nameof(CreateComment), nameof(AnswerCommentsController), new { id = answerCommentEntity.Id }, comment);
         }
         catch (ArgumentNullException ex)
@@ -49,7 +50,7 @@ public class AnswerCommentsController(AnswerCommentService answerCommentService)
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> EditComment(Guid id, [FromBody] AnswerCommentDto updated)
+    public async Task<IActionResult> EditComment(Guid id, [FromBody] AnswerCommentPayload updated)
     {
         if (updated == null || string.IsNullOrWhiteSpace(updated.Content))
         {

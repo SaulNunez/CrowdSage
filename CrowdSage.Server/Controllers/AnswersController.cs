@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using CrowdSage.Server.Services;
 using CrowdSage.Server.Models.InsertUpdate;
+using System.Security.Claims;
 
 namespace CrowdSage.Server.Controllers;
 
@@ -11,7 +12,7 @@ namespace CrowdSage.Server.Controllers;
 public class AnswersController(AnswersService answersService) : ControllerBase
 {
     [HttpPost]
-    public async Task<IActionResult> CreateAnswerAsync([FromBody] AnswerDto answer)
+    public async Task<IActionResult> CreateAnswerAsync([FromBody] AnswerPayload answer)
     {
         if (answer == null || string.IsNullOrWhiteSpace(answer.Content))
         {
@@ -19,7 +20,8 @@ public class AnswersController(AnswersService answersService) : ControllerBase
         }
         try
         {
-            var answerEntity = await answersService.AddAnswerAsync(answer);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var answerEntity = await answersService.AddAnswerAsync(answer, userId);
             return new CreatedAtActionResult("GetAnswer", "Answer", new { id = answerEntity.Id }, answer);
         }
         catch (ArgumentNullException ex)
@@ -47,7 +49,7 @@ public class AnswersController(AnswersService answersService) : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> EditAnswer(Guid id, [FromBody] AnswerDto answer)
+    public async Task<IActionResult> EditAnswer(Guid id, [FromBody] AnswerPayload answer)
     {
         if (answer == null || string.IsNullOrWhiteSpace(answer.Content))
         {
