@@ -8,6 +8,7 @@ import { ServerError } from "../Components/ServerError";
 import ReactMarkdown from "react-markdown";
 import type { Answer, AnswerCreatePayload, Question, QuestionComment, QuestionCommentCreatePayload } from "../types";
 import axios from 'axios';
+import { useParams } from "react-router";
 
 function QuestionCommentSection({ questionId }: { questionId: string }) {
   const queryClient = useQueryClient();
@@ -145,7 +146,7 @@ function AnswerSection({ questionId }: { questionId: string }) {
 }
 
 export default function QuestionPage() {
-  const questionId = "";
+  const { questionId }  = useParams();
 
   const { isPending, error, data: question } = useQuery<Question>({
     queryKey: ["question", questionId],
