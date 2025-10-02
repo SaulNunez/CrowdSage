@@ -25,6 +25,7 @@ public class QuestionCommentService(CrowdsageDbContext dbContext) : IQuestionCom
 
         var questionCommentEntity = new QuestionComment
         {
+            QuestionId = questionId,
             Content = comment.Content,
             CreatedAt = DateTime.UtcNow,
             AuthorId = userId
