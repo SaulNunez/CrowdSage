@@ -39,6 +39,7 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
             Content = question.Content,
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow,
+            AuthorId = userId
         };
 
         questionEntity.Votes.Add(new QuestionVote
