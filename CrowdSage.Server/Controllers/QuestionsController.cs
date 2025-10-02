@@ -1,4 +1,5 @@
-﻿using CrowdSage.Server.Models;
+﻿using System.Security.Claims;
+using CrowdSage.Server.Models;
 using CrowdSage.Server.Models.InsertUpdate;
 using CrowdSage.Server.Services;
 using Microsoft.AspNetCore.Http;
@@ -33,11 +34,12 @@ namespace CrowdSage.Server.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddQuestionAsync([FromBody] QuestionDto question)
+        public async Task<IActionResult> AddQuestionAsync([FromBody] QuestionPayload question)
         {
             try
             {
-                var questionEntity = await questionsService.AddQuestionAsync(question);
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var questionEntity = await questionsService.AddQuestionAsync(question, userId);
                 return CreatedAtAction(nameof(GetAction), new { id = questionEntity.Id }, question);
             }
             catch (ArgumentNullException ex)
@@ -51,7 +53,7 @@ namespace CrowdSage.Server.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> EditQuestion(Guid id, [FromBody] QuestionDto question)
+        public async Task<IActionResult> EditQuestion(Guid id, [FromBody] QuestionPayload question)
         {
             try
             {

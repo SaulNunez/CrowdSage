@@ -1,21 +1,22 @@
 using CrowdSage.Server.Models;
 using CrowdSage.Server.Models.InsertUpdate;
+using CrowdSage.Server.Models.Outputs;
 using Microsoft.EntityFrameworkCore;
 
 namespace CrowdSage.Server.Services;
 
 public interface IQuestionCommentService
 {
-    Task<QuestionComment> AddCommnentAsync(QuestionCommentDto comment, Guid questionId);
+    Task<QuestionCommentDto> AddCommnentAsync(QuestionCommentPayload comment, Guid questionId);
     Task DeleteCommentAsync(Guid id);
-    Task EditCommentAsync(Guid id, QuestionCommentDto updatedComment);
-    Task<QuestionComment> GetCommentByIdAsync(Guid id);
-    Task<List<QuestionComment>> GetCommentsForQuestion(Guid questionId);
+    Task EditCommentAsync(Guid id, QuestionCommentPayload updatedComment);
+    Task<QuestionCommentDto> GetCommentByIdAsync(Guid id);
+    Task<List<QuestionCommentDto>> GetCommentsForQuestion(Guid questionId);
 }
 
 public class QuestionCommentService(CrowdsageDbContext dbContext) : IQuestionCommentService
 {
-    public async Task<QuestionComment> AddCommnentAsync(QuestionCommentDto comment, Guid questionId)
+    public async Task<QuestionCommentDto> AddCommnentAsync(QuestionCommentPayload comment, Guid questionId, string userId)
     {
         if (comment == null)
         {
@@ -26,25 +27,42 @@ public class QuestionCommentService(CrowdsageDbContext dbContext) : IQuestionCom
         {
             Content = comment.Content,
             CreatedAt = DateTime.UtcNow,
+            AuthorId = userId
         };
 
         dbContext.QuestionComments.Add(questionCommentEntity);
         await dbContext.SaveChangesAsync();
 
-        return questionCommentEntity;
-    }
-
-    public async Task<QuestionComment> GetCommentByIdAsync(Guid id)
-    {
-        var comment = await dbContext.QuestionComments.FindAsync(id);
-        if (comment == null)
+        return new QuestionCommentDto
         {
-            throw new KeyNotFoundException($"Comment with ID {id} not found.");
-        }
-        return comment;
+            Content = questionCommentEntity.Content,
+            CreatedAt = questionCommentEntity.CreatedAt,
+            UpdatedAt = questionCommentEntity.UpdatedAt,
+            Author = new AuthorDto
+            {
+                Id = questionCommentEntity.Author.Id,
+                UserName = questionCommentEntity.Author.UserName,
+            }
+        };
     }
 
-    public async Task EditCommentAsync(Guid id, QuestionCommentDto updatedComment)
+    public async Task<QuestionCommentDto> GetCommentByIdAsync(Guid id)
+    {
+        var comment = await dbContext.QuestionComments.FindAsync(id) ?? throw new KeyNotFoundException($"Comment with ID {id} not found.");
+        return new QuestionCommentDto
+        {
+            Content = comment.Content,
+            CreatedAt = comment.CreatedAt,
+            UpdatedAt = comment.UpdatedAt,
+            Author = new AuthorDto
+            {
+                Id = comment.Author.Id,
+                UserName = comment.Author.UserName,
+            }
+        };
+    }
+
+    public async Task EditCommentAsync(Guid id, QuestionCommentPayload updatedComment)
     {
         if (updatedComment == null)
         {
@@ -66,12 +84,22 @@ public class QuestionCommentService(CrowdsageDbContext dbContext) : IQuestionCom
         await dbContext.SaveChangesAsync();
     }
 
-    public async Task<List<QuestionComment>> GetCommentsForQuestion(Guid questionId)
+    public async Task<List<QuestionCommentDto>> GetCommentsForQuestion(Guid questionId)
     {
         var comments = await dbContext.QuestionComments
             .Where(c => c.QuestionId == questionId)
             .ToListAsync();
 
-        return comments;
+        return [.. comments.Select(comment => new QuestionCommentDto
+        {
+            Content = comment.Content,
+            CreatedAt = comment.CreatedAt,
+            UpdatedAt = comment.UpdatedAt,
+            Author = new AuthorDto
+            {
+                Id = comment.Author.Id,
+                UserName = comment.Author.UserName,
+            }
+        })];
     }
 }

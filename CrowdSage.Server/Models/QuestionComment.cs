@@ -9,4 +9,6 @@ public class QuestionComment
     public DateTimeOffset UpdatedAt { get; set; }
 
     public Question Question { get; set; }
+    public CrowdsageUser Author { get; set; }
+    public string AuthorId { get; set; }
 }

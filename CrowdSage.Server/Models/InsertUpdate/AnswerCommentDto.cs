@@ -1,6 +1,6 @@
 namespace CrowdSage.Server.Models.InsertUpdate;
 
-public class AnswerCommentDto
+public class AnswerCommentPayload
 {
     public string Content { get; set; }
 }
