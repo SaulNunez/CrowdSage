@@ -12,7 +12,7 @@ namespace CrowdSage.Server.Controllers;
 public class AnswersController(AnswersService answersService) : ControllerBase
 {
     [HttpPost]
-    public async Task<IActionResult> CreateAnswerAsync([FromBody] AnswerPayload answer)
+    public async Task<IActionResult> CreateAnswerAsync([FromBody] AnswerPayload answer, Guid questionId)
     {
         if (answer == null || string.IsNullOrWhiteSpace(answer.Content))
         {
@@ -21,7 +21,7 @@ public class AnswersController(AnswersService answersService) : ControllerBase
         try
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var answerEntity = await answersService.AddAnswerAsync(answer, userId);
+            var answerEntity = await answersService.AddAnswerAsync(answer, questionId, userId);
             return new CreatedAtActionResult("GetAnswer", "Answer", new { id = answerEntity.Id }, answer);
         }
         catch (ArgumentNullException ex)
