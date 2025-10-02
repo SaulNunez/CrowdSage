@@ -33,7 +33,7 @@ export interface Question extends IDateable {
 
 export interface Author {
     id: string,
-    urlPhoto: string | null,
+    urlPhoto: string | null | undefined,
     userName: string
 }
 
