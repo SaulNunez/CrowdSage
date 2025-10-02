@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 
-export function CommentForm({ onSubmit }) {
-  const [text, setText] = useState("");
+export 
+function CommentForm({ onSubmit }: { onSubmit: (text: string) => void }) {
+  const [text, setText] = useState<string>("");
   return (
     <form
       onSubmit={(e) => {
@@ -18,7 +19,7 @@ export function CommentForm({ onSubmit }) {
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
-        <button className="px-3 py-2 bg-gray-100 border rounded text-sm">Comment</button>
+        <button type="submit" className="px-3 py-2 bg-gray-100 border rounded text-sm">Comment</button>
       </div>
     </form>
   );

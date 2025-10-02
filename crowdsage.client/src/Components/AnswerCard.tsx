@@ -1,39 +1,56 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { CommentList } from './CommentList';
 import { CommentForm } from './CommentForm';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, mutationOptions } from '@tanstack/react-query';
+import ReactMarkdown from 'react-markdown';
+import type { Answer, AnswerComment, AnswerCommentCreatePayload } from '../types';
+import { ServerError } from './ServerError';
+import { Loading } from './Loading';
+import axios from 'axios';
 
-interface AnswerComment {
-
+interface AnswerCardProps {
+  answer: Answer;
+  onUpvote: () => void;
+  onBookmark: () => void;
 }
 
-export function AnswerCard({ answer, onUpvote }) {
+export function AnswerCard({ answer, onUpvote, onBookmark }: AnswerCardProps) {
   const queryClient = useQueryClient();
 
-  const { isPending, error, data: answerCommentData } = useQuery<AnswerComment[]>({
-    queryKey: ["answer_comment", "1"],
+  const questionId = "";
+  const answerId = "";
+
+  const { isPending, error, data: answerComments } = useQuery<AnswerComment[]>({
+    queryKey: ["answer_comment", answerId],
     queryFn: () =>
-      fetch("/api/questions/1/answers/1/comments").then((res) => res.json()),
+      fetch(`/api/questions/${questionId}/answers/${answerId}/comments`).then((res) => res.json()),
   });
 
+  const addComment = (newComment:AnswerCommentCreatePayload) => axios.post(`/api/questions/${questionId}/answers/${answerId}/comments`, newComment);
+
+  function groupMutationOptions() {
+    return mutationOptions({
+      mutationKey: ['answer_comment'],
+      mutationFn: addComment,
+    });
+  }
+
   const addCommentMutation = useMutation({
-    mutationFn: (newAnswer) =>
-      fetch("/api/questions/1/answers/1/comments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newAnswer),
-      }).then((res) => res.json()),
+    ...groupMutationOptions(),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["answer_comment", "1"] });
+      queryClient.invalidateQueries({ queryKey: ["answer_comment", answerId] });
     },
   });
 
-  const createComment = (text) => {
+  const createComment = (text: string) => {
     addCommentMutation.mutate({ content: text });
   };
 
-  const [showCommentForm, setShowCommentForm] = useState(false);
+  const [showCommentForm, setShowCommentForm] = useState<boolean>(false);
 
+  if (isPending) return <Loading />;
+  if (error) return <ServerError />;
+  
   return (
     <article className="bg-white rounded-lg shadow p-5 flex gap-4">
       <div className="w-16 flex flex-col items-center text-center">
@@ -42,6 +59,7 @@ export function AnswerCard({ answer, onUpvote }) {
           className="w-10 h-10 flex items-center justify-center rounded border text-sm"
           aria-label="Upvote"
         >
+          ▲
         </button>
         <div className="mt-2 text-sm font-medium">{answer.votes}</div>
       </div>
@@ -50,17 +68,25 @@ export function AnswerCard({ answer, onUpvote }) {
         <div className="flex items-start justify-between gap-4">
           <div>
             <div className="text-sm text-gray-700">
-              Answered by <strong className="text-gray-900">{answer.author}</strong>
-              <span className="text-gray-500"> • {answer.postedAt}</span>
+              Answered by <strong className="text-gray-900">{answer.author.userName}</strong>
+              <span className="text-gray-500"> • {answer.createdAt.toLocaleDateString()}</span>
             </div>
           </div>
+          <button
+            onClick={onBookmark}
+            className="text-sm px-2 py-1 border rounded"
+          >
+            {answer.bookmarked ? "Bookmarked" : "Bookmark"}
+          </button>
         </div>
 
-        <div className="mt-3 prose max-w-none">{answer.body}</div>
+        <div className="mt-3 prose max-w-none">
+          <ReactMarkdown>{answer.content}</ReactMarkdown>
+        </div>
 
         <div className="mt-4 border-t pt-3">
           <h4 className="text-sm font-medium">Comments</h4>
-          <CommentList comments={answerCommentData} />
+          <CommentList comments={answerComments} />
           {showCommentForm ? (
             <CommentForm
               onSubmit={(text) => {
