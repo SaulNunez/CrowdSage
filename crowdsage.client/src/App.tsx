@@ -1,20 +1,21 @@
-import { useEffect, useState } from 'react';
-import './App.css';
-import type { Question } from './types';
+import { useEffect, useMemo, useState } from "react";
+import type { Question } from "./types";
+import { useNavigate } from 'react-router';
 
-
-// LandingPage Component
-export default function App() {
+export default function LandingPage() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [darkMode, setDarkMode] = useState<boolean>(false);
+  const [search, setSearch] = useState<string>("");
+  const [selectedTag, setSelectedTag] = useState<string>("All");
+  const navigate = useNavigate();
 
-  // Example data — in real app, fetch from API
+  // Example questions
   useEffect(() => {
     setQuestions([
       {
         id: "1",
         title: "How to debounce an input in React?",
-        content: "I'm trying to debounce search input before calling API...",
+        content: "I'm trying to debounce search input before calling an API.",
         tags: ["react", "hooks", "debounce"],
         bookmarked: false,
         author: { id: "a1", userName: "Alice", urlPhoto: null },
@@ -31,22 +32,47 @@ export default function App() {
         createdAt: new Date("2025-09-28T12:00:00Z"),
         updatedAt: new Date(),
       },
+      {
+        id: "3",
+        title: "What is the difference between useMemo and useCallback?",
+        content: "I’m confused about when to use useMemo vs useCallback in React.",
+        tags: ["react", "hooks", "performance"],
+        bookmarked: false,
+        author: { id: "a3", userName: "Carol", urlPhoto: null },
+        createdAt: new Date("2025-09-27T08:30:00Z"),
+        updatedAt: new Date(),
+      },
     ]);
   }, []);
 
-  // Toggle system mode
+  // Toggle dark mode
   useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
+    if (darkMode) document.documentElement.classList.add("dark");
+    else document.documentElement.classList.remove("dark");
   }, [darkMode]);
+
+  // Extract all unique tags
+  const allTags = useMemo(() => {
+    const tags = Array.from(new Set(questions.flatMap((q) => q.tags)));
+    return ["All", ...tags];
+  }, [questions]);
+
+  // Filtered questions
+  const filteredQuestions = useMemo(() => {
+    return questions.filter((q) => {
+      const matchesSearch =
+        q.title.toLowerCase().includes(search.toLowerCase()) ||
+        q.content.toLowerCase().includes(search.toLowerCase());
+      const matchesTag = selectedTag === "All" || q.tags.includes(selectedTag);
+      return matchesSearch && matchesTag;
+    });
+  }, [questions, search, selectedTag]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
       <div className="max-w-5xl mx-auto px-6 py-10">
-        <header className="flex justify-between items-center mb-8">
+        {/* Header */}
+        <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
             Latest Questions
           </h1>
@@ -58,16 +84,68 @@ export default function App() {
           </button>
         </header>
 
+        {/* Search and Filter */}
+        <div className="flex flex-col sm:flex-row items-center gap-4 mb-8">
+          <input
+            type="text"
+            placeholder="Search questions..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="flex-1 border rounded-lg p-3 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          />
+          <select
+            value={selectedTag}
+            onChange={(e) => setSelectedTag(e.target.value)}
+            className="border rounded-lg p-3 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          >
+            {allTags.map((tag) => (
+              <option key={tag} value={tag}>
+                {tag}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {/* Question List */}
         <div className="space-y-6">
-          {questions.map((q) => (
+          {filteredQuestions.map((q) => (
             <article
               key={q.id}
-              className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border dark:border-gray-700 transition"
+              onClick={() => navigate(`/questions/${q.id}`)}
+              className="bg-white dark:bg-gray-800 rounded-2xl shadow p-6 flex flex-col gap-4 transition hover:shadow-md hover:-translate-y-1 cursor-pointer border dark:border-gray-700"
             >
-              <h2 className="text-xl font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">
-                {q.title}
-              </h2>
-              <div className="mt-2 flex flex-wrap gap-2">
+              {/* Title + bookmark */}
+              <div className="flex justify-between items-start">
+                <h2 className="text-xl font-semibold text-blue-600 dark:text-blue-400 hover:underline">
+                  {q.title}
+                </h2>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setQuestions((prev) =>
+                      prev.map((x) =>
+                        x.id === q.id ? { ...x, bookmarked: !x.bookmarked } : x
+                      )
+                    );
+                  }}
+                  className={`p-2 rounded-full border ${
+                    q.bookmarked
+                      ? "text-yellow-500 border-yellow-400"
+                      : "text-gray-500 border-gray-300 dark:border-gray-600"
+                  } hover:bg-gray-100 dark:hover:bg-gray-700`}
+                  aria-label="Bookmark question"
+                >
+                  {q.bookmarked ? "★" : "☆"}
+                </button>
+              </div>
+
+              {/* Content preview */}
+              <p className="text-gray-700 dark:text-gray-300 text-sm line-clamp-2">
+                {q.content}
+              </p>
+
+              {/* Tags */}
+              <div className="flex flex-wrap gap-2">
                 {q.tags.map((tag) => (
                   <span
                     key={tag}
@@ -77,15 +155,25 @@ export default function App() {
                   </span>
                 ))}
               </div>
-              <div className="mt-3 text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
-                <span>
-                  Asked by <strong className="text-gray-800 dark:text-gray-200">{q.author.userName}</strong>
-                </span>
-                <span>•</span>
-                <span>{q.createdAt.toLocaleDateString()}</span>
+
+              {/* Author + Date */}
+              <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 pt-3 border-t dark:border-gray-700">
+                <div>
+                  Asked by{" "}
+                  <strong className="text-gray-800 dark:text-gray-200">
+                    {q.author.userName}
+                  </strong>
+                </div>
+                <div>{q.createdAt.toLocaleDateString()}</div>
               </div>
             </article>
           ))}
+
+          {filteredQuestions.length === 0 && (
+            <p className="text-center text-gray-500 dark:text-gray-400 mt-10">
+              No questions found.
+            </p>
+          )}
         </div>
       </div>
     </div>
