@@ -7,7 +7,7 @@ using System.Security.Claims;
 
 namespace CrowdSage.Server.Controllers;
 
-[Route("api/question/{questionId}/answer")]
+[Route("api/question/{questionId}/answers")]
 [ApiController]
 public class AnswersController(AnswersService answersService) : ControllerBase
 {

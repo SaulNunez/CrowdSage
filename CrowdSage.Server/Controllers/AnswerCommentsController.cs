@@ -35,7 +35,7 @@ public class AnswerCommentsController(AnswerCommentService answerCommentService)
         }
     }
 
-    [HttpGet("{answerId}")]
+    [HttpGet]
     public async Task<IActionResult> GetCommentsForAnswer(Guid answerId)
     {
         try
@@ -49,8 +49,8 @@ public class AnswerCommentsController(AnswerCommentService answerCommentService)
         }
     }
 
-    [HttpPut("{id}")]
-    public async Task<IActionResult> EditComment(Guid id, [FromBody] AnswerCommentPayload updated)
+    [HttpPut("{answerCommentId}")]
+    public async Task<IActionResult> EditComment(Guid answerCommentId, [FromBody] AnswerCommentPayload updated)
     {
         if (updated == null || string.IsNullOrWhiteSpace(updated.Content))
         {
@@ -58,7 +58,7 @@ public class AnswerCommentsController(AnswerCommentService answerCommentService)
         }
         try
         {
-            await answerCommentService.EditCommentAsync(id, updated);
+            await answerCommentService.EditCommentAsync(answerCommentId, updated);
             return NoContent();
         }
         catch (KeyNotFoundException ex)
@@ -71,12 +71,12 @@ public class AnswerCommentsController(AnswerCommentService answerCommentService)
         }
     }
 
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> DeleteComment(Guid id)
+    [HttpDelete("{answerCommentId}")]
+    public async Task<IActionResult> DeleteComment(Guid answerCommentId)
     {
         try
         {
-            await answerCommentService.DeleteCommentAsync(id);
+            await answerCommentService.DeleteCommentAsync(answerCommentId);
             return NoContent();
         }
         catch (KeyNotFoundException ex)
