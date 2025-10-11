@@ -11,6 +11,25 @@ namespace CrowdSage.Server.Controllers
     [ApiController]
     public class QuestionsController(QuestionsService questionsService) : ControllerBase
     {
+        [HttpGet("/new")]
+        public async Task<IActionResult> GetNewQuestions([FromQuery] int resultsPerPage = 10, [FromQuery] int page = 1)
+        {
+            if (resultsPerPage <= 0 || page <= 0)
+            {
+                return BadRequest("Results per page and page number must be greater than zero.");
+            }
+
+            try
+            {
+                var questions = await questionsService.GetNewQuestionsAsync(resultsPerPage, (page - 1) * resultsPerPage);
+                return Ok(questions);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
+
         [HttpGet("{id}")]
         public IActionResult GetAction(string id)
         {

@@ -1,6 +1,7 @@
 ﻿using CrowdSage.Server.Models;
 using CrowdSage.Server.Models.InsertUpdate;
 using CrowdSage.Server.Models.Outputs;
+using Microsoft.EntityFrameworkCore;
 
 namespace CrowdSage.Server.Services;
 
@@ -24,6 +25,30 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
                 UserName = question.Author.UserName
             }
         };
+    }
+
+    public async Task<QuestionDto[]> GetNewQuestionsAsync(int take = 10, int offset = 0)
+    {
+        var questions = dbContext.Questions
+            .OrderByDescending(q => q.CreatedAt)
+            .Take(take)
+            .Skip(offset);
+        
+        return questions.Select(q => new QuestionDto
+            {
+                Id = q.Id,
+                Content = q.Content,
+                CreatedAt = q.CreatedAt,
+                UpdatedAt = q.UpdatedAt,
+                Bookmarked = false,
+                Votes = q.Votes.Count(v => v.Vote == Models.Enums.VoteValue.Upvote) - q.Votes.Count(v => v.Vote == Models.Enums.VoteValue.Downvote),
+                Author = new AuthorDto
+                {
+                    Id = q.Author.Id,
+                    UserName = q.Author.UserName
+                }
+            })
+            .ToList();
     }
 
     public async Task<QuestionDto> AddQuestionAsync(QuestionPayload question, string userId)
