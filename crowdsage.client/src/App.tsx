@@ -1,38 +1,25 @@
 import { useEffect, useState } from 'react';
 import './App.css';
 import type { Question } from './types';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import axios from 'axios';
+import { Loading } from './Components/Loading';
+import { ServerError } from './Components/ServerError';
 
 
 // LandingPage Component
 export default function App() {
-  const [questions, setQuestions] = useState<Question[]>([]);
   const [darkMode, setDarkMode] = useState<boolean>(false);
+  const [page] = useState(1);
 
-  // Example data — in real app, fetch from API
-  useEffect(() => {
-    setQuestions([
-      {
-        id: "1",
-        title: "How to debounce an input in React?",
-        content: "I'm trying to debounce search input before calling API...",
-        tags: ["react", "hooks", "debounce"],
-        bookmarked: false,
-        author: { id: "a1", userName: "Alice", urlPhoto: null },
-        createdAt: new Date("2025-09-29T10:00:00Z"),
-        updatedAt: new Date(),
-      },
-      {
-        id: "2",
-        title: "Difference between interface and type in TypeScript?",
-        content: "When should I use interface vs type?",
-        tags: ["typescript", "interface", "type-alias"],
-        bookmarked: true,
-        author: { id: "a2", userName: "Bob", urlPhoto: null },
-        createdAt: new Date("2025-09-28T12:00:00Z"),
-        updatedAt: new Date(),
-      },
-    ]);
-  }, []);
+  const newQuestionsQuery = (page: number, resultsPerPage: number): Promise<Question[]> => 
+      axios.get(`/api/questions/new/?page=${page}&take=${resultsPerPage}`).then(res => res.data);
+
+    const { isPending, error, data: questions } = useQuery({
+    queryKey: ["question_new", page],
+    queryFn: () => newQuestionsQuery(page, 10),
+    placeholderData: keepPreviousData
+  });
 
   // Toggle system mode
   useEffect(() => {
@@ -42,6 +29,9 @@ export default function App() {
       document.documentElement.classList.remove("dark");
     }
   }, [darkMode]);
+
+  if (isPending) return <Loading />
+  if (error) return <ServerError />
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
