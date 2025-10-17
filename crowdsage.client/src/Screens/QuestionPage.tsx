@@ -198,9 +198,9 @@ export default function QuestionPage() {
             ))}
           </div>
 
-          <QuestionCommentSection questionId={questionId} />
+          {questionId? <QuestionCommentSection questionId={questionId} /> : null}
 
-          <AnswerSection questionId={questionId} />
+          {questionId? <AnswerSection questionId={questionId} /> : null}
         </main>
       </div>
     </div>

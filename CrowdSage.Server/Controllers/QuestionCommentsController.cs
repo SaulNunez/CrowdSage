@@ -33,7 +33,7 @@ public class QuestionCommentsController(QuestionCommentService questionCommentSe
         }
     }
 
-    [HttpGet("{questionId}")]
+    [HttpGet]
     public async Task<IActionResult> GetCommentsForQuestion(Guid questionId)
     {
         try

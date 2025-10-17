@@ -7,7 +7,7 @@ namespace CrowdSage.Server.Services;
 
 public interface IQuestionCommentService
 {
-    Task<QuestionCommentDto> AddCommnentAsync(QuestionCommentPayload comment, Guid questionId);
+    Task<QuestionCommentDto> AddCommnentAsync(QuestionCommentPayload comment, Guid questionId, string userId);
     Task DeleteCommentAsync(Guid id);
     Task EditCommentAsync(Guid id, QuestionCommentPayload updatedComment);
     Task<QuestionCommentDto> GetCommentByIdAsync(Guid id);
@@ -25,6 +25,7 @@ public class QuestionCommentService(CrowdsageDbContext dbContext) : IQuestionCom
 
         var questionCommentEntity = new QuestionComment
         {
+            QuestionId = questionId,
             Content = comment.Content,
             CreatedAt = DateTime.UtcNow,
             AuthorId = userId

@@ -7,12 +7,12 @@ using System.Security.Claims;
 
 namespace CrowdSage.Server.Controllers;
 
-[Route("api/question/{questionId}/answer")]
+[Route("api/question/{questionId}/answers")]
 [ApiController]
 public class AnswersController(AnswersService answersService) : ControllerBase
 {
     [HttpPost]
-    public async Task<IActionResult> CreateAnswerAsync([FromBody] AnswerPayload answer)
+    public async Task<IActionResult> CreateAnswerAsync([FromBody] AnswerPayload answer, Guid questionId)
     {
         if (answer == null || string.IsNullOrWhiteSpace(answer.Content))
         {
@@ -21,7 +21,7 @@ public class AnswersController(AnswersService answersService) : ControllerBase
         try
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var answerEntity = await answersService.AddAnswerAsync(answer, userId);
+            var answerEntity = await answersService.AddAnswerAsync(answer, questionId, userId);
             return new CreatedAtActionResult("GetAnswer", "Answer", new { id = answerEntity.Id }, answer);
         }
         catch (ArgumentNullException ex)

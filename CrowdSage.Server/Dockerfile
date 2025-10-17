@@ -19,7 +19,7 @@ FROM with-node AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["CrowdSage.Server/CrowdSage.Server.csproj", "CrowdSage.Server/"]
-COPY ["crowdsage.client/crowdsage.client.esproj", "crowdsage.client/"]
+COPY ["/crowdsage.client/crowdsage.client.esproj", "crowdsage.client/"]
 RUN dotnet restore "./CrowdSage.Server/CrowdSage.Server.csproj"
 COPY . .
 WORKDIR "/src/CrowdSage.Server"

@@ -7,7 +7,7 @@ namespace CrowdSage.Server.Services;
 
 public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
 {
-    public async Task<AnswerDto> AddAnswerAsync(AnswerPayload answer, string userId)
+    public async Task<AnswerDto> AddAnswerAsync(AnswerPayload answer, Guid questionId, string userId)
     {
         if (answer == null)
         {
@@ -19,7 +19,8 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
             Content = answer.Content,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
-            AuthorId = userId
+            AuthorId = userId,
+            QuestionId = questionId,
         };
 
         answerEntity.Votes.Add(new AnswerVote
@@ -92,7 +93,7 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
 
 public interface IAnswersService
 {
-    public Task<AnswerDto> AddAnswerAsync(AnswerPayload answer, string userId);
+    public Task<AnswerDto> AddAnswerAsync(AnswerPayload answer, Guid questionId, string userId);
     public Task<IEnumerable<AnswerDto>> GetAnswersForQuestion(Guid questionId);
     public Task EditAnswer(Guid guid, AnswerPayload answer);
     public Task DeleteAnswer(Guid id);

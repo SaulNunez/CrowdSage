@@ -28,7 +28,8 @@ public class AnswerCommentService(CrowdsageDbContext dbContext) : IAnswerComment
             Content = comment.Content,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
-            AuthorId = userId
+            AuthorId = userId,
+            AnswerId = answerId
         };
 
         dbContext.AnswerComments.Add(answerCommentEntity);
