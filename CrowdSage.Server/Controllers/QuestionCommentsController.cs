@@ -8,7 +8,7 @@ namespace CrowdSage.Server.Controllers;
 
 [Route("api/question/{questionId}/comment")]
 [ApiController]
-public class QuestionCommentsController(QuestionCommentService questionCommentService) : ControllerBase
+public class QuestionCommentsController(IQuestionCommentService questionCommentService) : ControllerBase
 {
     [HttpPost]
     public async Task<IActionResult> CreateComment([FromBody] QuestionCommentPayload comment, Guid questionId)

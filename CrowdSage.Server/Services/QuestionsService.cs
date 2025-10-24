@@ -119,4 +119,5 @@ public interface IQuestionsService
     public Task<QuestionDto> AddQuestionAsync(QuestionPayload question, string userId);
     public Task EditQuestion(Guid guid, QuestionPayload question);
     public Task DeleteQuestion(Guid id);
+    Task<List<QuestionDto>> GetNewQuestionsAsync(int take = 10, int offset = 0);
 }
