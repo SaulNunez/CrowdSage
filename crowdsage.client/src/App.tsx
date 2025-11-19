@@ -38,9 +38,6 @@ export default function App() {
     return ["All", ...tags];
   }, [questions]);
 
-  if (isPending) return <Loading />
-  if (error) return <ServerError />
-
     // Filtered questions
   const filteredQuestions = useMemo(() => {
     return questions.filter((q) => {
@@ -51,6 +48,9 @@ export default function App() {
       return matchesSearch && matchesTag;
     });
   }, [questions, search, selectedTag]);
+
+  if (isPending) return <Loading />
+  if (error) return <ServerError />
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
