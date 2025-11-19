@@ -9,7 +9,7 @@ namespace CrowdSage.Server.Controllers;
 
 [Route("api/question/{questionId}/answers")]
 [ApiController]
-public class AnswersController(AnswersService answersService) : ControllerBase
+public class AnswersController(IAnswersService answersService) : ControllerBase
 {
     [HttpPost]
     public async Task<IActionResult> CreateAnswerAsync([FromBody] AnswerPayload answer, Guid questionId)

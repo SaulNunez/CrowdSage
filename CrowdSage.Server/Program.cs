@@ -1,6 +1,7 @@
 using CrowdSage.Server.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using CrowdSage.Server.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -83,6 +84,12 @@ builder.Services.AddOpenIddict()
         // Register the ASP.NET Core host.
         options.UseAspNetCore();
     });
+
+// Services
+builder.Services.AddScoped<IQuestionsService, QuestionsService>();
+builder.Services.AddScoped<IAnswerCommentService, AnswerCommentService>();
+builder.Services.AddScoped<IAnswersService, AnswersService>();
+builder.Services.AddScoped<IQuestionCommentService, QuestionCommentService>();
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

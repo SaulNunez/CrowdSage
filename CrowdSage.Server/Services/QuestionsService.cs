@@ -27,7 +27,7 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
         };
     }
 
-    public async Task<QuestionDto[]> GetNewQuestionsAsync(int take = 10, int offset = 0)
+    public async Task<List<QuestionDto>> GetNewQuestionsAsync(int take = 10, int offset = 0)
     {
         var questions = dbContext.Questions
             .OrderByDescending(q => q.CreatedAt)
@@ -41,7 +41,7 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
                 CreatedAt = q.CreatedAt,
                 UpdatedAt = q.UpdatedAt,
                 Bookmarked = false,
-                Votes = q.Votes.Count(v => v.Vote == Models.Enums.VoteValue.Upvote) - q.Votes.Count(v => v.Vote == Models.Enums.VoteValue.Downvote),
+                Votes = q.Votes.Count(v => v.Vote == Models.Enums.VoteValue.Upvote),
                 Author = new AuthorDto
                 {
                     Id = q.Author.Id,
@@ -119,4 +119,5 @@ public interface IQuestionsService
     public Task<QuestionDto> AddQuestionAsync(QuestionPayload question, string userId);
     public Task EditQuestion(Guid guid, QuestionPayload question);
     public Task DeleteQuestion(Guid id);
+    Task<List<QuestionDto>> GetNewQuestionsAsync(int take = 10, int offset = 0);
 }

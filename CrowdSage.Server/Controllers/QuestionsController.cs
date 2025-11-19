@@ -9,7 +9,7 @@ namespace CrowdSage.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class QuestionsController(QuestionsService questionsService) : ControllerBase
+    public class QuestionsController(IQuestionsService questionsService) : ControllerBase
     {
         [HttpGet("/new")]
         public async Task<IActionResult> GetNewQuestions([FromQuery] int resultsPerPage = 10, [FromQuery] int page = 1)
