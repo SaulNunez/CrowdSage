@@ -53,6 +53,10 @@ function AnswerSection({ questionId }: { questionId: string }) {
   if (isLoading) return <Loading />
   if (error) return <ServerError />
 
+  function upvoteAnswer(id: string): void {
+    throw new Error("Function not implemented.");
+  }
+
   return (
     <section className="mt-8">
       {<h2 className="text-2xl font-semibold">{data.length} Answers</h2>}
