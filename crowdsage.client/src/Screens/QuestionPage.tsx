@@ -2,12 +2,9 @@ import { useState } from "react";
 import { AnswerCard } from "../Components/AnswerCard";
 import { CommentList } from "../Components/CommentList";
 import { CommentForm } from "../Components/CommentForm";
-import { mutationOptions, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loading } from "../Components/Loading";
 import { ServerError } from "../Components/ServerError";
 import ReactMarkdown from "react-markdown";
-import type { Answer, AnswerCreatePayload, Question, QuestionComment, QuestionCommentCreatePayload } from "../types";
-import axios from 'axios';
 import { useParams } from "react-router";
 import { useAddAnswerMutation, useAddQuestionCommentMutation, useGetAnswersForQuestionQuery, useGetCommentsForQuestionQuery, useGetQuestionByIdQuery } from "../common/reducers";
 

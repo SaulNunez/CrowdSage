@@ -1,12 +1,10 @@
 import { useState } from 'react';
 import { CommentList } from './CommentList';
 import { CommentForm } from './CommentForm';
-import { useMutation, useQuery, useQueryClient, mutationOptions } from '@tanstack/react-query';
 import ReactMarkdown from 'react-markdown';
-import type { Answer, AnswerComment, AnswerCommentCreatePayload } from '../types';
+import type { Answer } from '../types';
 import { ServerError } from './ServerError';
 import { Loading } from './Loading';
-import axios from 'axios';
 import { useAddCommentForAnswerMutation, useGetCommentsForAnswerQuery } from '../common/reducers';
 
 interface AnswerCardProps {
