@@ -9,94 +9,43 @@ import ReactMarkdown from "react-markdown";
 import type { Answer, AnswerCreatePayload, Question, QuestionComment, QuestionCommentCreatePayload } from "../types";
 import axios from 'axios';
 import { useParams } from "react-router";
+import { useAddAnswerMutation, useAddQuestionCommentMutation, useGetAnswersForQuestionQuery, useGetCommentsForQuestionQuery, useGetQuestionByIdQuery } from "../common/reducers";
 
 function QuestionCommentSection({ questionId }: { questionId: string }) {
-  const queryClient = useQueryClient();
+  const { data, isLoading, error} = useGetCommentsForQuestionQuery(questionId);
 
-  const { isPending, error, data } = useQuery<QuestionComment[]>({
-    queryKey: ["question_comment", questionId],
-    queryFn: () =>
-      axios.get(`/api/questions/${questionId}/comments`),
-  });
+  const [addComment, { isLoading: currentlyAddingComment }] = useAddQuestionCommentMutation();
 
-  const addCommentRequest = async (newAnswer: QuestionCommentCreatePayload) => {
-    const { data } = await axios.post(`/api/questions/${questionId}/comments`, newAnswer);
-    return data;
-  };
+  if (isLoading) return <Loading />
+  if (error) return <ServerError />
 
-function groupMutationOptions() {
-  return mutationOptions({
-    mutationKey: ['answer_comment'],
-    mutationFn: addCommentRequest,
-  });
-}
+  return (
+    <div className="mt-6 border-t pt-4">
+      <h3 className="text-lg font-medium">Comments</h3>
+      <CommentList comments={data} />
 
-const addCommentMutation = useMutation({
-  ...groupMutationOptions(),
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ["question_comment", questionId] });
-  },
-});
-
-const addComment = (comment: string) => addCommentMutation.mutate({ content: comment });
-
-if (isPending) return <Loading />
-if (error) return <ServerError />
-
-return (
-  <div className="mt-6 border-t pt-4">
-    <h3 className="text-lg font-medium">Comments</h3>
-    <CommentList comments={data} />
-
-    <CommentForm onSubmit={(text) => addComment(text)} />
-  </div>
-);
+      <CommentForm onSubmit={(content) => addComment({data: {content}, questionId})} />
+    </div>
+  );
 }
 
 function AnswerSection({ questionId }: { questionId: string }) {
-  const queryClient = useQueryClient();
-  function upvoteAnswer(id: string) {
-    console.log(`Upvoted ${id}`);
-  }
-
-  const { isPending, error, data } = useQuery<Answer[]>({
-    queryKey: ["answers", questionId],
-    queryFn: () => axios.get(`/api/questions/${questionId}/answers`),
-  });
+  const { data, isLoading, error} = useGetAnswersForQuestionQuery(questionId);
 
   // UI state
   const [newAnswerText, setNewAnswerText] = useState("");
 
-  const addAnswerRequest = async (newAnswer: AnswerCreatePayload) => {
-    const { data } = await axios.post(`/api/questions/${questionId}/answers`, newAnswer);
-    return data;
-  };
+  const [createAnswer, { isLoading: addingAnswer}] = useAddAnswerMutation();
 
-  function groupMutationOptions() {
-    return mutationOptions({
-      mutationKey: ['add_answer'],
-      mutationFn: addAnswerRequest,
-    });
-  }
-
-  const addAnswerMutation = useMutation({
-    ...groupMutationOptions(),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["question", "1"] });
-    },
-  });
-
-  function addAnswer() {
+  async function addAnswer() {
     if (!newAnswerText.trim()) return;
 
-    addAnswerMutation.mutate({
-      content: newAnswerText.trim()
-    },
-      {
-        onSuccess: () => {
-          setNewAnswerText("");
-        }
-      });
+    try {
+      await createAnswer({data: {content: newAnswerText.trim()}, questionId});
+      setNewAnswerText("");
+    } catch (error) {
+      console.error("Error adding answer:", error);
+    }
   }
 
   function toggleBookmarkAnswer(id: string) {
@@ -104,7 +53,7 @@ function AnswerSection({ questionId }: { questionId: string }) {
     console.log(`Bookmarked ${id}`);
   }
 
-  if (isPending) return <Loading />
+  if (isLoading) return <Loading />
   if (error) return <ServerError />
 
   return (
@@ -133,7 +82,7 @@ function AnswerSection({ questionId }: { questionId: string }) {
           placeholder="Write your answer with markdown support..."
         />
         <div className="mt-3 flex gap-2">
-          <button onClick={addAnswer} disabled={addAnswerMutation.isPending} className="px-4 py-2 bg-blue-600 text-white rounded">
+          <button onClick={addAnswer} disabled={addingAnswer} className="px-4 py-2 bg-blue-600 text-white rounded">
             Post Your Answer
           </button>
           <button onClick={() => setNewAnswerText("")} className="px-4 py-2 border rounded">
@@ -148,19 +97,13 @@ function AnswerSection({ questionId }: { questionId: string }) {
 export default function QuestionPage() {
   const { questionId }  = useParams();
 
-  const { isPending, error, data: question } = useQuery<Question>({
-    queryKey: ["question", questionId],
-    queryFn: async () => {
-      const { data } = await axios.get(`/api/question/${questionId}`);
-      return data;
-    },
-  });
+  const {data: question, isLoading, error} = useGetQuestionByIdQuery(questionId);
 
   function toggleBookmarkQuestion() {
     //setQuestion((q) => ({ ...q, bookmarked: !q.bookmarked }));
   }
 
-  if (isPending) return <Loading />;
+  if (isLoading) return <Loading />;
   if (error) return <ServerError />;
 
   return (

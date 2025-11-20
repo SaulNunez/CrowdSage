@@ -7,6 +7,7 @@ import type { Answer, AnswerComment, AnswerCommentCreatePayload } from '../types
 import { ServerError } from './ServerError';
 import { Loading } from './Loading';
 import axios from 'axios';
+import { useAddCommentForAnswerMutation, useGetCommentsForAnswerQuery } from '../common/reducers';
 
 interface AnswerCardProps {
   answer: Answer;
@@ -15,40 +16,20 @@ interface AnswerCardProps {
 }
 
 export function AnswerCard({ answer, onUpvote, onBookmark }: AnswerCardProps) {
-  const queryClient = useQueryClient();
 
   const questionId = "";
   const answerId = "";
 
-  const { isPending, error, data: answerComments } = useQuery<AnswerComment[]>({
-    queryKey: ["answer_comment", answerId],
-    queryFn: () =>
-      fetch(`/api/questions/${questionId}/answers/${answerId}/comments`).then((res) => res.json()),
-  });
+  const { data: answerComments, isLoading, error } = useGetCommentsForAnswerQuery({answerId, questionId});
+  const [ addAnswerComment, { isLoading: addingComment } ] = useAddCommentForAnswerMutation();
 
-  const addComment = (newComment:AnswerCommentCreatePayload) => axios.post(`/api/questions/${questionId}/answers/${answerId}/comments`, newComment);
-
-  function groupMutationOptions() {
-    return mutationOptions({
-      mutationKey: ['answer_comment'],
-      mutationFn: addComment,
-    });
-  }
-
-  const addCommentMutation = useMutation({
-    ...groupMutationOptions(),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["answer_comment", answerId] });
-    },
-  });
-
-  const createComment = (text: string) => {
-    addCommentMutation.mutate({ content: text });
+  const createComment = (content: string) => {
+    addAnswerComment({ data: { content }, questionId, answerId });
   };
 
   const [showCommentForm, setShowCommentForm] = useState<boolean>(false);
 
-  if (isPending) return <Loading />;
+  if (isLoading) return <Loading />;
   if (error) return <ServerError />;
   
   return (
@@ -96,6 +77,7 @@ export function AnswerCard({ answer, onUpvote, onBookmark }: AnswerCardProps) {
             />
           ) : (
             <button
+              disabled={addingComment}
               onClick={() => setShowCommentForm(true)}
               className="mt-2 text-sm text-blue-600"
             >

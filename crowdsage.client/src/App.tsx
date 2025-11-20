@@ -1,11 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import './App.css';
-import type { Question } from './types';
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import axios from 'axios';
 import { Loading } from './Components/Loading';
 import { ServerError } from './Components/ServerError';
 import { useNavigate } from 'react-router';
+import { useGetNewQuestionsQuery } from './common/reducers';
 
 
 // LandingPage Component
@@ -16,14 +14,7 @@ export default function App() {
   const [darkMode, setDarkMode] = useState<boolean>(false);
   const [page] = useState(1);
 
-  const newQuestionsQuery = (page: number, resultsPerPage: number): Promise<Question[]> => 
-      axios.get(`/api/questions/new/?page=${page}&take=${resultsPerPage}`).then(res => res.data);
-
-    const { isPending, error, data: questions } = useQuery({
-    queryKey: ["question_new", page],
-    queryFn: () => newQuestionsQuery(page, 10),
-    placeholderData: keepPreviousData
-  });
+  const {data: questions, isLoading, error} = useGetNewQuestionsQuery({page: page, take: 10});
 
   // Toggle dark mode
   useEffect(() => {
@@ -40,7 +31,7 @@ export default function App() {
 
     // Filtered questions
   const filteredQuestions = useMemo(() => {
-    return questions.filter((q) => {
+    return questions?.filter((q) => {
       const matchesSearch =
         q.title.toLowerCase().includes(search.toLowerCase()) ||
         q.content.toLowerCase().includes(search.toLowerCase());
@@ -49,7 +40,7 @@ export default function App() {
     });
   }, [questions, search, selectedTag]);
 
-  if (isPending) return <Loading />
+  if (isLoading) return <Loading />
   if (error) return <ServerError />
 
   return (
