@@ -140,7 +140,7 @@ namespace CrowdSage.Server.Controllers
             }
             catch (KeyNotFoundException)
             {
-                return NotFound($"Question with ID {questionId} not found.");
+                return NotFound($"Bookmark for question with ID {questionId} not found.");
             }
             catch (Exception ex)
             {
