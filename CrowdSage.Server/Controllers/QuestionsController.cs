@@ -126,10 +126,26 @@ namespace CrowdSage.Server.Controllers
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
             }
-        public void BookmarkQuestion(Guid questionId)
+        }
+
+        [Authorize]
+        [HttpDelete("{questionId}/bookmark")]
+        public IActionResult RemoveBookmarkFromQuestion(Guid questionId)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            questionsService.BookmarkQuestion(questionId, userId);
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                questionsService.RemoveBookmarkFromQuestion(questionId, userId!);
+                return NoContent();
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound($"Question with ID {questionId} not found.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
+            }
         }
     }
 }

@@ -123,6 +123,13 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
         dbContext.QuestionBookmarks.Add(bookmark);
         dbContext.SaveChanges();
     }
+
+    public void RemoveBookmarkFromQuestion(Guid questionId, string userId)
+    {
+        var bookmark = dbContext.QuestionBookmarks.Where(b => b.QuestionId == questionId && b.UserId == userId).FirstOrDefault() ?? throw new KeyNotFoundException($"Bookmark for Question ID {questionId} and User ID {userId} not found.");
+        dbContext.QuestionBookmarks.Remove(bookmark);
+        dbContext.SaveChanges();
+    }
 }
 
 public interface IQuestionsService
@@ -133,4 +140,5 @@ public interface IQuestionsService
     public Task DeleteQuestion(Guid id);
     Task<List<QuestionDto>> GetNewQuestionsAsync(int take = 10, int offset = 0);
     void BookmarkQuestion(Guid questionId, string userId);
+    void RemoveBookmarkFromQuestion(Guid questionId, string userId);
 }
