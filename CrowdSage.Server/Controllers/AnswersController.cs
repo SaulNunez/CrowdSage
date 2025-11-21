@@ -87,4 +87,19 @@ public class AnswersController(IAnswersService answersService) : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
         }
     }
+
+    [HttpPost("{answerId}/bookmark")]
+    public IActionResult BookmarkAnswer(Guid answerId)
+    {
+        try
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            answersService.BookmarkAnswer(answerId, userId);
+            return Ok();
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
+        }
+    }
 }

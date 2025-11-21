@@ -89,6 +89,17 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
         dbContext.Answers.Remove(answer);
         await dbContext.SaveChangesAsync();
     }
+
+    public void BookmarkAnswer(Guid answerId, string userId)
+    {
+        var bookmark = new AnswerBookmark
+        {
+            AnswerId = answerId,
+            UserId = userId!,
+        };
+        dbContext.AnswerBookmarks.Add(bookmark);
+        dbContext.SaveChanges();
+    }
 }
 
 public interface IAnswersService
@@ -97,4 +108,5 @@ public interface IAnswersService
     public Task<IEnumerable<AnswerDto>> GetAnswersForQuestion(Guid questionId);
     public Task EditAnswer(Guid guid, AnswerPayload answer);
     public Task DeleteAnswer(Guid id);
+    void BookmarkAnswer(Guid answerId, string userId);
 }
