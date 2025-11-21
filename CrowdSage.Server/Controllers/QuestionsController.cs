@@ -2,6 +2,7 @@
 using CrowdSage.Server.Models;
 using CrowdSage.Server.Models.InsertUpdate;
 using CrowdSage.Server.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -109,6 +110,26 @@ namespace CrowdSage.Server.Controllers
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
             }
+        }
+
+        [Authorize]
+        [HttpPost("{questionId}/bookmark")]
+        public IActionResult BookmarkQuestion(Guid questionId)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                questionsService.BookmarkQuestion(questionId, userId!);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
+            }
+        public void BookmarkQuestion(Guid questionId)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            questionsService.BookmarkQuestion(questionId, userId);
         }
     }
 }

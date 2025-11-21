@@ -111,6 +111,18 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
         dbContext.Questions.Remove(question);
         await dbContext.SaveChangesAsync();
     }
+
+    public void BookmarkQuestion(Guid questionId, string userId)
+    {
+        var bookmark = new QuestionBookmark
+        {
+            QuestionId = questionId,
+            UserId = userId
+        };
+
+        dbContext.QuestionBookmarks.Add(bookmark);
+        dbContext.SaveChanges();
+    }
 }
 
 public interface IQuestionsService
@@ -120,4 +132,5 @@ public interface IQuestionsService
     public Task EditQuestion(Guid guid, QuestionPayload question);
     public Task DeleteQuestion(Guid id);
     Task<List<QuestionDto>> GetNewQuestionsAsync(int take = 10, int offset = 0);
+    void BookmarkQuestion(Guid questionId, string userId);
 }
