@@ -130,6 +130,26 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
         dbContext.QuestionBookmarks.Remove(bookmark);
         dbContext.SaveChanges();
     }
+
+    public Task VoteOnQuestion(Guid answerId, string userId, VoteInput voteInput)
+    {
+        var vote = dbContext.QuestionVotes.Where(v => v.QuestionId == answerId && v.UserId == userId).FirstOrDefault();
+        if (vote == null)
+        {
+            var question = dbContext.Questions.Find(answerId) ?? throw new KeyNotFoundException($"Question with ID {answerId} not found.");
+            var newVote = new QuestionVote
+            {
+                Question = question,
+                UserId = userId,
+                Vote = voteInput.Vote
+            };
+        }
+        else
+        {
+            vote.Vote = voteInput.Vote;
+        }
+        return dbContext.SaveChangesAsync();
+    }
 }
 
 public interface IQuestionsService
@@ -141,4 +161,5 @@ public interface IQuestionsService
     Task<List<QuestionDto>> GetNewQuestionsAsync(int take = 10, int offset = 0);
     void BookmarkQuestion(Guid questionId, string userId);
     void RemoveBookmarkFromQuestion(Guid questionId, string userId);
+    Task VoteOnQuestion(Guid answerId, string v, VoteInput voteInput);
 }

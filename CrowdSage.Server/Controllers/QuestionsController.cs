@@ -147,5 +147,25 @@ namespace CrowdSage.Server.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
             }
         }
+
+        [Authorize]
+        [HttpPost("{answerId}/vote")]
+        public async Task<IActionResult> VoteOnQuestion(Guid answerId, [FromBody] VoteInput voteInput)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                await questionsService.VoteOnQuestion(answerId, userId!, voteInput);
+                return Ok();
+            }
+            catch (KeyNotFoundException)
+            {
+                return NotFound($"Question with ID {answerId} not found.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
+            }
+        }
     }
 }
