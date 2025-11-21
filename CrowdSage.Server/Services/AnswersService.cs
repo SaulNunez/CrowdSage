@@ -1,4 +1,5 @@
 ﻿using CrowdSage.Server.Models;
+using CrowdSage.Server.Models.Enums;
 using CrowdSage.Server.Models.InsertUpdate;
 using CrowdSage.Server.Models.Outputs;
 using Microsoft.EntityFrameworkCore;
@@ -107,6 +108,29 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
         dbContext.AnswerBookmarks.Remove(bookmark);
         dbContext.SaveChanges();
     }
+
+    public async Task VoteOnAnswer(Guid answerId, string userId, VoteInput vote)
+    {
+        var voteDb = dbContext.AnswerVotes.Where(v => v.AnswerId == answerId && v.UserId == userId).FirstOrDefault();
+        if (voteDb == null)
+        {
+            var answer = await dbContext.Answers.FindAsync(answerId)
+                ?? throw new KeyNotFoundException($"Answer with ID {answerId} not found.");
+            var newVote = new AnswerVote
+            {
+                Answer = answer,
+                UserId = userId,
+                Vote = vote.Vote
+            };
+            dbContext.AnswerVotes.Add(newVote);
+        }
+        else
+        {
+            voteDb.Vote = vote.Vote;
+            dbContext.AnswerVotes.Update(voteDb);
+        }
+        await dbContext.SaveChangesAsync();
+    }
 }
 
 public interface IAnswersService
@@ -117,4 +141,5 @@ public interface IAnswersService
     public Task DeleteAnswer(Guid id);
     void BookmarkAnswer(Guid answerId, string userId);
     void RemoveBookmarkFromAnswer(Guid answerId, string userId);
+    Task VoteOnAnswer(Guid answerId, string userId, VoteInput vote);
 }
