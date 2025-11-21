@@ -100,6 +100,13 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
         dbContext.AnswerBookmarks.Add(bookmark);
         dbContext.SaveChanges();
     }
+
+    public void RemoveBookmarkFromAnswer(Guid answerId, string userId)
+    {
+        var bookmark = dbContext.AnswerBookmarks.Where(b => b.AnswerId == answerId && b.UserId == userId).FirstOrDefault() ?? throw new KeyNotFoundException($"Bookmark for Answer ID {answerId} and User ID {userId} not found.");
+        dbContext.AnswerBookmarks.Remove(bookmark);
+        dbContext.SaveChanges();
+    }
 }
 
 public interface IAnswersService
@@ -109,4 +116,5 @@ public interface IAnswersService
     public Task EditAnswer(Guid guid, AnswerPayload answer);
     public Task DeleteAnswer(Guid id);
     void BookmarkAnswer(Guid answerId, string userId);
+    void RemoveBookmarkFromAnswer(Guid answerId, string userId);
 }

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using CrowdSage.Server.Services;
 using CrowdSage.Server.Models.InsertUpdate;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CrowdSage.Server.Controllers;
 
@@ -88,13 +89,14 @@ public class AnswersController(IAnswersService answersService) : ControllerBase
         }
     }
 
+    [Authorize]
     [HttpPost("{answerId}/bookmark")]
     public IActionResult BookmarkAnswer(Guid answerId)
     {
         try
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            answersService.BookmarkAnswer(answerId, userId);
+            answersService.BookmarkAnswer(answerId, userId!);
             return Ok();
         }
         catch (Exception ex)
@@ -102,4 +104,23 @@ public class AnswersController(IAnswersService answersService) : ControllerBase
             return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
         }
     }
-}
+
+    [Authorize]
+    [HttpDelete("{answerId}/bookmark")]
+    public IActionResult RemoveBookmarkFromAnswer(Guid answerId)
+    {
+        try
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            answersService.RemoveBookmarkFromAnswer(answerId, userId!);
+            return NoContent();
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound($"Answer with ID {id} not found.");
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
+        }
+    }
