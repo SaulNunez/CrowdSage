@@ -117,7 +117,7 @@ public class AnswersController(IAnswersService answersService) : ControllerBase
         }
         catch (KeyNotFoundException)
         {
-            return NotFound($"Answer with ID {id} not found.");
+            return NotFound($"Bookmark for question with ID {answerId} not found.");
         }
         catch (Exception ex)
         {
