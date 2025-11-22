@@ -10,6 +10,7 @@ import { Provider } from 'react-redux'
 import { store } from './store.ts'
 import CreateQuestionPage from './Screens/CreateQuestionPage.tsx'
 import NavBar from './Components/NavBar.tsx'
+import BookmarksScreen from './Screens/BookmarksPage.tsx'
 
 
 createRoot(document.getElementById('root')!).render(
@@ -22,6 +23,9 @@ createRoot(document.getElementById('root')!).render(
           <Route path="question">
             <Route path=":questionId" element={<QuestionPage />} />
             <Route path="new" element={<CreateQuestionPage />} />
+          </Route>
+          <Route path="profile">
+            <Route path="bookmarks" element={<BookmarksScreen />} />
           </Route>
           <Route path="auth">
             <Route path="login" element={<Login />} />

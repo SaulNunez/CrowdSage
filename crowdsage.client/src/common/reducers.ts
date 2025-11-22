@@ -97,6 +97,12 @@ export const questionsApi = createApi({
         }),
         invalidatesTags: (result, error, {answerId, answerCommentId}) => [{ type: 'AnswerComment', id: `${answerId}#${answerCommentId}` }],
     }),
+    getBookmarkedQuestions: build.query<Question[], void>({
+        query: () => `question/bookmark`,
+    }),
+    getBookmarkedAnswers: build.query<Answer[], void>({
+        query: () => `answer/bookmark`,
+    }),
   }),
 });
 
@@ -113,5 +119,7 @@ export const {
     useEditAnswerMutation,
     useGetCommentsForAnswerQuery,
     useAddCommentForAnswerMutation,
-    useEditCommentForAnswerMutation
+    useEditCommentForAnswerMutation,
+    useGetBookmarkedQuestionsQuery,
+    useGetBookmarkedAnswersQuery
 } = questionsApi;
