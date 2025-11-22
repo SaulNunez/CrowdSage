@@ -20,10 +20,8 @@ export default function CreateQuestionPage() {
                     Content
                 </label>
                 <MarkdownEditor
-                    id="content"
-                    rows={10}
+                    textInputProps={{id:"content", rows:10, placeholder: "Write your question... (markdown supported)"}}
                     className="w-full border rounded-lg p-3 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    placeholder="Write your question with markdown support..."
                 />
             </div>
             <div className="flex gap-4">
