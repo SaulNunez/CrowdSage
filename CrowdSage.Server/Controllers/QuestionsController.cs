@@ -12,17 +12,17 @@ namespace CrowdSage.Server.Controllers
     [ApiController]
     public class QuestionsController(IQuestionsService questionsService) : ControllerBase
     {
-        [HttpGet("/new")]
-        public async Task<IActionResult> GetNewQuestions([FromQuery] int resultsPerPage = 10, [FromQuery] int page = 1)
+        [HttpGet("new")]
+        public async Task<IActionResult> GetNewQuestions([FromQuery] int take = 10, [FromQuery] int page = 1)
         {
-            if (resultsPerPage <= 0 || page <= 0)
+            if (take <= 0 || page <= 0)
             {
                 return BadRequest("Results per page and page number must be greater than zero.");
             }
 
             try
             {
-                var questions = await questionsService.GetNewQuestionsAsync(resultsPerPage, (page - 1) * resultsPerPage);
+                var questions = await questionsService.GetNewQuestionsAsync(take, (page - 1) * take);
                 return Ok(questions);
             }
             catch (Exception ex)
