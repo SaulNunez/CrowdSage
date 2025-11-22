@@ -107,6 +107,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+InitializeDb(app);
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -116,3 +117,14 @@ app.MapControllers();
 app.MapFallbackToFile("/index.html");
 
 app.Run();
+
+static void InitializeDb(WebApplication app)
+{
+    using var scope = app.Services.CreateScope();
+    using var context = scope.ServiceProvider.GetService<CrowdsageDbContext>();
+    if(context == null)
+    {
+        Console.WriteLine($"Couldn't find Context {nameof(CrowdsageDbContext)} in Dependency Injection, it might be that the database couldn't intialize correctly.");
+    }
+    context?.Database.Migrate();
+}
