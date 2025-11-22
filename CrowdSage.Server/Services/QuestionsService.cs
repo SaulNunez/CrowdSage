@@ -150,6 +150,33 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
         }
         return dbContext.SaveChangesAsync();
     }
+
+    public async Task<List<QuestionDto>> GetBookmarkedQuestions(string userId, int take = 50, int offset = 0)
+    {
+        var bookmarkedQuestions = await dbContext.QuestionBookmarks
+            .Where(b => b.UserId == userId)
+            .Select(b => b.Question)
+            .OrderByDescending(q => q.CreatedAt)
+            .Take(take)
+            .Skip(offset)
+            .ToListAsync();
+
+        return bookmarkedQuestions.Select(q => new QuestionDto
+            {
+                Id = q.Id,
+                Content = q.Content,
+                CreatedAt = q.CreatedAt,
+                UpdatedAt = q.UpdatedAt,
+                Bookmarked = true,
+                Votes = q.Votes.Count(v => v.Vote == Models.Enums.VoteValue.Upvote),
+                Author = new AuthorDto
+                {
+                    Id = q.Author.Id,
+                    UserName = q.Author.UserName
+                }
+            })
+            .ToList();
+    }
 }
 
 public interface IQuestionsService
@@ -162,4 +189,5 @@ public interface IQuestionsService
     void BookmarkQuestion(Guid questionId, string userId);
     void RemoveBookmarkFromQuestion(Guid questionId, string userId);
     Task VoteOnQuestion(Guid answerId, string v, VoteInput voteInput);
+    Task<List<QuestionDto>> GetBookmarkedQuestions(string userId);
 }
