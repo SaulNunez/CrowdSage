@@ -8,23 +8,27 @@ import Login from './Screens/LoginPage.tsx'
 import Register from './Screens/RegisterPage.tsx'
 import { Provider } from 'react-redux'
 import { store } from './store.ts'
+import CreateQuestionPage from './Screens/CreateQuestionPage.tsx'
+import NavBar from './Components/NavBar.tsx'
 
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
+    <Provider store={store}>
       <BrowserRouter>
-      <Provider store={store}>
+        <NavBar isAuthenticated={false} />
         <Routes>
           <Route index element={<App />} />
           <Route path="question">
-            <Route path=":questionId" element={<QuestionPage/>} />
+            <Route path=":questionId" element={<QuestionPage />} />
+            <Route path="new" element={<CreateQuestionPage />} />
           </Route>
           <Route path="auth">
-            <Route path="login" element={<Login/>} />
+            <Route path="login" element={<Login />} />
             <Route path="register" element={<Register />} />
           </Route>
         </Routes>
-      </Provider>
       </BrowserRouter>
+    </Provider>
   </StrictMode>,
 )
