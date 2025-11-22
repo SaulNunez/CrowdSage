@@ -90,6 +90,13 @@ builder.Services.AddScoped<IQuestionsService, QuestionsService>();
 builder.Services.AddScoped<IAnswerCommentService, AnswerCommentService>();
 builder.Services.AddScoped<IAnswersService, AnswersService>();
 builder.Services.AddScoped<IQuestionCommentService, QuestionCommentService>();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReactClient",
+        builder => builder.WithOrigins("https://localhost:51708")
+            .AllowAnyHeader()
+            .AllowAnyMethod());
+});
 
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -108,6 +115,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 InitializeDb(app);
+
+app.UseCors("AllowReactClient");
 
 app.UseAuthentication();
 app.UseAuthorization();
