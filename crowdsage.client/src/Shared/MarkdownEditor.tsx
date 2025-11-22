@@ -5,9 +5,10 @@ type Props = {
   onChange?: (val: string) => void;
   uploadImage?: (file: File) => Promise<string>;
   className?: string;
+  textInputProps?: React.TextareaHTMLAttributes<HTMLTextAreaElement>;
 };
 
-export default function MarkdownEditor({ value = "", onChange, uploadImage, className = "" }: Props) {
+export default function MarkdownEditor({ value = "", onChange, uploadImage, className = "", textInputProps = {} }: Props) {
   const [text, setText] = useState<string>(value);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -250,8 +251,16 @@ export default function MarkdownEditor({ value = "", onChange, uploadImage, clas
     <div className={`markdown-editor ${className}`}>
       <div className="bg-gray-50 border rounded-t p-2 flex gap-2 items-center">
         <div className="flex gap-1">
-          <button onClick={onBold} className="px-2 py-1 rounded hover:bg-gray-100">B</button>
-          <button onClick={onItalic} className="px-2 py-1 rounded hover:bg-gray-100">I</button>
+          <button onClick={onBold} className="px-2 py-1 rounded hover:bg-gray-100">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+              <path strokeLinejoin="round" d="M6.75 3.744h-.753v8.25h7.125a4.125 4.125 0 0 0 0-8.25H6.75Zm0 0v.38m0 16.122h6.747a4.5 4.5 0 0 0 0-9.001h-7.5v9h.753Zm0 0v-.37m0-15.751h6a3.75 3.75 0 1 1 0 7.5h-6m0-7.5v7.5m0 0v8.25m0-8.25h6.375a4.125 4.125 0 0 1 0 8.25H6.75m.747-15.38h4.875a3.375 3.375 0 0 1 0 6.75H7.497v-6.75Zm0 7.5h5.25a3.75 3.75 0 0 1 0 7.5h-5.25v-7.5Z" />
+            </svg>
+          </button>
+          <button onClick={onItalic} className="px-2 py-1 rounded hover:bg-gray-100">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5.248 20.246H9.05m0 0h3.696m-3.696 0 5.893-16.502m0 0h-3.697m3.697 0h3.803" />
+            </svg>
+          </button>
           <button onClick={onInlineCode} className="px-2 py-1 rounded hover:bg-gray-100">`code`</button>
         </div>
 
@@ -273,8 +282,16 @@ export default function MarkdownEditor({ value = "", onChange, uploadImage, clas
         </div>
 
         <div className="flex gap-1 ml-2">
-          <button onClick={onLinkInsert} className="px-2 py-1 rounded hover:bg-gray-100">Link</button>
-          <button onClick={onImageInsert} className="px-2 py-1 rounded hover:bg-gray-100">Image</button>
+          <button onClick={onLinkInsert} className="px-2 py-1 rounded hover:bg-gray-100">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+            <path strokeLinecap="round" strokeLinejoin="round" d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13" />
+          </svg>
+          </button>
+          <button onClick={onImageInsert} className="px-2 py-1 rounded hover:bg-gray-100">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+            <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+          </svg>
+          </button>
         </div>
 
         <div className="flex gap-1 ml-2">
@@ -294,6 +311,7 @@ export default function MarkdownEditor({ value = "", onChange, uploadImage, clas
         value={text}
         onChange={(e) => updateText(e.target.value)}
         className="w-full min-h-[240px] p-4 border rounded-b font-mono text-sm focus:outline-none"
+        {...textInputProps}
       />
 
       {/* Link Modal */}
