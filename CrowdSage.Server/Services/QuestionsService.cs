@@ -189,5 +189,5 @@ public interface IQuestionsService
     void BookmarkQuestion(Guid questionId, string userId);
     void RemoveBookmarkFromQuestion(Guid questionId, string userId);
     Task VoteOnQuestion(Guid answerId, string v, VoteInput voteInput);
-    Task<List<QuestionDto>> GetBookmarkedQuestions(string userId);
+    Task<List<QuestionDto>> GetBookmarkedQuestions(string userId, int take = 50, int offset = 0);
 }
