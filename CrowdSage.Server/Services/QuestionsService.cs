@@ -188,6 +188,6 @@ public interface IQuestionsService
     Task<List<QuestionDto>> GetNewQuestionsAsync(int take = 10, int offset = 0);
     void BookmarkQuestion(Guid questionId, string userId);
     void RemoveBookmarkFromQuestion(Guid questionId, string userId);
-    Task VoteOnQuestion(Guid answerId, string v, VoteInput voteInput);
-    Task<List<QuestionDto>> GetBookmarkedQuestions(string userId);
+    Task VoteOnQuestion(Guid answerId, string userId, VoteInput voteInput);
+    Task<List<QuestionDto>> GetBookmarkedQuestions(string userId, int take = 50, int offset = 0);
 }

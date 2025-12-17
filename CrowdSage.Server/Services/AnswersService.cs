@@ -12,16 +12,18 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
     {
         if (answer == null)
         {
-            throw new ArgumentNullException(nameof(answer), "Question cannot be null.");
+            throw new ArgumentNullException(nameof(answer), "Answer cannot be null.");
         }
 
         Answer answerEntity = new()
         {
             Content = answer.Content,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
             AuthorId = userId,
             QuestionId = questionId,
+            Votes = new List<AnswerVote>(),
+            Comments = new List<AnswerComment>(),
         };
 
         answerEntity.Votes.Add(new AnswerVote
@@ -33,6 +35,9 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
         dbContext.Answers.Add(answerEntity);
         await dbContext.SaveChangesAsync();
 
+        // Ensure author information is available for the returned DTO
+        var author = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
         return new AnswerDto
         {
             Id = answerEntity.Id,
@@ -41,8 +46,8 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
             Content = answerEntity.Content,
             Author = new AuthorDto
             {
-                Id = answerEntity.Author.Id,
-                UserName = answerEntity.Author.UserName,
+                Id = author?.Id ?? userId,
+                UserName = author?.UserName ?? string.Empty,
             },
             Bookmarked = false,
             Votes = 1
