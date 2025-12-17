@@ -78,4 +78,70 @@ public class AnswersServiceTests
         Assert.Single(added.Votes);
         Assert.Equal(user.Id, added.Votes.First().UserId);
     }
+
+    [Fact]
+    public async Task AddAnswerAsync_MissingQuestion_ThrowsKeyNotFoundException()
+    {
+        await using var context = CreateInMemoryContext();
+        var user = new CrowdsageUser { Id = "user2", UserName = "u2" };
+        await context.Users.AddAsync(user);
+        await context.SaveChangesAsync();
+
+        var svc = new AnswersService(context);
+        var payload = new AnswerPayload { Content = "x" };
+
+        await Assert.ThrowsAsync<KeyNotFoundException>(() => svc.AddAnswerAsync(payload, Guid.NewGuid(), user.Id));
+    }
+
+    [Fact]
+    public async Task GetBookmarkedAnswers_ReturnsDtosWithBookmarkedTrue()
+    {
+        await using var context = CreateInMemoryContext();
+        var user = new CrowdsageUser { Id = "user3", UserName = "u3" };
+        await context.Users.AddAsync(user);
+
+        var question = new Question
+        {
+            Id = Guid.NewGuid(),
+            Title = "Q",
+            Content = "C",
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            Tags = new System.Collections.Generic.List<string>(),
+            Answers = new System.Collections.Generic.List<Answer>(),
+            Votes = new System.Collections.Generic.List<QuestionVote>(),
+            Comments = new System.Collections.Generic.List<QuestionComment>(),
+            AuthorId = user.Id,
+            Author = user
+        };
+        await context.Questions.AddAsync(question);
+
+        var answer = new Answer
+        {
+            Content = "ans",
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            Author = user,
+            AuthorId = user.Id,
+            Question = question,
+            QuestionId = question.Id,
+            Votes = new System.Collections.Generic.List<AnswerVote>(),
+            Comments = new System.Collections.Generic.List<AnswerComment>()
+        };
+        await context.Answers.AddAsync(answer);
+        await context.SaveChangesAsync();
+
+        // Add bookmark
+        var bookmark = new AnswerBookmark { AnswerId = answer.Id, UserId = user.Id };
+        await context.AnswerBookmarks.AddAsync(bookmark);
+        await context.SaveChangesAsync();
+
+        var svc = new AnswersService(context);
+        var bookmarked = await svc.GetBookmarkedAnswers(user.Id);
+
+        Assert.Single(bookmarked);
+        var dto = bookmarked.First();
+        Assert.True(dto.Bookmarked);
+        Assert.Equal(answer.Content, dto.Content);
+    }
 }

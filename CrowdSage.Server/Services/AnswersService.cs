@@ -15,6 +15,13 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
             throw new ArgumentNullException(nameof(answer), "Answer cannot be null.");
         }
 
+        // Verify question exists
+        var question = await dbContext.Questions.FindAsync(questionId);
+        if (question == null)
+        {
+            throw new KeyNotFoundException($"Question with ID {questionId} not found.");
+        }
+
         Answer answerEntity = new()
         {
             Content = answer.Content,
@@ -156,6 +163,8 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
                 Id = a.Author.Id,
                 UserName = a.Author.UserName,
             }
+            ,
+            Bookmarked = true
         }).ToList();
     }
 }
