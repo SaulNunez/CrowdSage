@@ -10,7 +10,7 @@ namespace CrowdSage.Server.Controllers;
 
 [Route("api/question/{questionId}/answers")]
 [ApiController]
-public class AnswersController(IAnswersService answersService) : ControllerBase
+public class AnswersController(IAnswersService answersService, ILogger<AnswersController> logger) : ControllerBase
 {
     [HttpPost]
     public async Task<IActionResult> CreateAnswerAsync([FromBody] AnswerPayload answer, Guid questionId)
@@ -31,6 +31,7 @@ public class AnswersController(IAnswersService answersService) : ControllerBase
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "Error creating answer for question with ID {questionId}.", questionId);
             return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
         }
     }
@@ -45,6 +46,7 @@ public class AnswersController(IAnswersService answersService) : ControllerBase
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "Error fetching new answers for question with ID {questionId}.", questionId);
             return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
         }
     }
@@ -67,6 +69,7 @@ public class AnswersController(IAnswersService answersService) : ControllerBase
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "Error editing answer with ID {questionId}.", id);
             return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
         }
     }
@@ -85,6 +88,7 @@ public class AnswersController(IAnswersService answersService) : ControllerBase
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "Error deleting answer with id {questionId}.", id);
             return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
         }
     }
@@ -101,6 +105,7 @@ public class AnswersController(IAnswersService answersService) : ControllerBase
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "Error bookmarking answer with ID {answerId}.", answerId);
             return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
         }
     }
@@ -121,6 +126,7 @@ public class AnswersController(IAnswersService answersService) : ControllerBase
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "Error voting on answers with ID {answerId}.", answerId);
             return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
         }
     }
@@ -141,6 +147,7 @@ public class AnswersController(IAnswersService answersService) : ControllerBase
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "Error voting on answers with ID {answerId}.", answerId);
             return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
         }
     }

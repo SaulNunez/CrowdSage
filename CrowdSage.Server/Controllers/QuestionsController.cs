@@ -10,7 +10,7 @@ namespace CrowdSage.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class QuestionsController(IQuestionsService questionsService) : ControllerBase
+    public class QuestionsController(IQuestionsService questionsService, ILogger<QuestionsController> logger) : ControllerBase
     {
         [HttpGet("new")]
         public async Task<IActionResult> GetNewQuestions([FromQuery] int take = 10, [FromQuery] int page = 1)
@@ -27,6 +27,7 @@ namespace CrowdSage.Server.Controllers
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Error fetching new questions.");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
@@ -49,6 +50,7 @@ namespace CrowdSage.Server.Controllers
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Error fetching question with ID {questionId}.", id);
                 return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
             }
         }
@@ -68,6 +70,7 @@ namespace CrowdSage.Server.Controllers
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Error creating question.");
                 return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
             }
         }
@@ -90,6 +93,7 @@ namespace CrowdSage.Server.Controllers
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Error editing question with Id {questionId}.", id);
                 return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
             }
         }
@@ -108,6 +112,7 @@ namespace CrowdSage.Server.Controllers
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Error deleting question with ID {id}.", id);
                 return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
             }
         }
@@ -124,6 +129,7 @@ namespace CrowdSage.Server.Controllers
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Error bookmarking question with ID {questionId}.", questionId);
                 return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
             }
         }
@@ -144,6 +150,7 @@ namespace CrowdSage.Server.Controllers
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Error removing bookmark for question.");
                 return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
             }
         }
@@ -164,6 +171,7 @@ namespace CrowdSage.Server.Controllers
             }
             catch (Exception ex)
             {
+                logger.LogError(ex, "Error voting for question with ID {answerId}.", answerId);
                 return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
             }
         }

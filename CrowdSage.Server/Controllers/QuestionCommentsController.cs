@@ -8,7 +8,7 @@ namespace CrowdSage.Server.Controllers;
 
 [Route("api/question/{questionId}/comment")]
 [ApiController]
-public class QuestionCommentsController(IQuestionCommentService questionCommentService) : ControllerBase
+public class QuestionCommentsController(IQuestionCommentService questionCommentService, ILogger<QuestionCommentsController> logger) : ControllerBase
 {
     [HttpPost]
     public async Task<IActionResult> CreateComment([FromBody] QuestionCommentPayload comment, Guid questionId)
@@ -29,6 +29,7 @@ public class QuestionCommentsController(IQuestionCommentService questionCommentS
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "Error fetching new questions.");
             return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
         }
     }
@@ -43,6 +44,7 @@ public class QuestionCommentsController(IQuestionCommentService questionCommentS
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "Error fetching new questions.");
             return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
         }
     }
@@ -65,6 +67,7 @@ public class QuestionCommentsController(IQuestionCommentService questionCommentS
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "Error fetching new questions.");
             return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
         }
     }
@@ -83,6 +86,7 @@ public class QuestionCommentsController(IQuestionCommentService questionCommentS
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "Error fetching new questions.");
             return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
         }
     }

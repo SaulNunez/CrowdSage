@@ -10,7 +10,7 @@ namespace CrowdSage.Server.Controllers;
 
 [Route("api/questions/{questionId}/answers/{answerId}/comments")]
 [ApiController]
-public class AnswerCommentsController(IAnswerCommentService answerCommentService) : ControllerBase
+public class AnswerCommentsController(IAnswerCommentService answerCommentService, ILogger<AnswerCommentsController> logger) : ControllerBase
 {
     [HttpPost]
     public async Task<IActionResult> CreateComment([FromBody] AnswerCommentPayload comment, Guid answerId)
@@ -31,6 +31,7 @@ public class AnswerCommentsController(IAnswerCommentService answerCommentService
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "Error creating comment for answer with ID {answerId}.", answerId);
             return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
         }
     }
@@ -45,6 +46,7 @@ public class AnswerCommentsController(IAnswerCommentService answerCommentService
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "Error fetching comments for answer with ID {answerId}.", answerId);
             return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
         }
     }
@@ -67,6 +69,7 @@ public class AnswerCommentsController(IAnswerCommentService answerCommentService
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "Error editing comment with ID {answerCommentId}.", answerCommentId);
             return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
         }
     }
@@ -85,6 +88,7 @@ public class AnswerCommentsController(IAnswerCommentService answerCommentService
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "Error deleting comment with ID {answerCommentId}.", answerCommentId);
             return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
         }
     }

@@ -90,6 +90,9 @@ builder.Services.AddScoped<IQuestionsService, QuestionsService>();
 builder.Services.AddScoped<IAnswerCommentService, AnswerCommentService>();
 builder.Services.AddScoped<IAnswersService, AnswersService>();
 builder.Services.AddScoped<IQuestionCommentService, QuestionCommentService>();
+
+builder.Logging.AddConsole();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactClient",

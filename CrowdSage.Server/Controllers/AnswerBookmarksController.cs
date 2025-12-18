@@ -7,7 +7,7 @@ namespace CrowdSage.Server.Controllers;
 
 [Route("api/question/bookmark")]
 [ApiController]
-public class AnswerBookmarksController(IAnswersService answersService) : ControllerBase
+public class AnswerBookmarksController(IAnswersService answersService, ILogger<AnswerBookmarksController> logger) : ControllerBase
 {
     [Authorize]
     [HttpGet()]
@@ -21,6 +21,7 @@ public class AnswerBookmarksController(IAnswersService answersService) : Control
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "Error getting bookmarked answers.");
             return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
         }
     }
