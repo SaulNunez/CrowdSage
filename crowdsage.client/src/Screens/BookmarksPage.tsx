@@ -19,7 +19,7 @@ export default function BookmarksScreen() {
                 {questions && (
                     <div className="grid gap-4">
                         {questions.map((q) => (
-                            <QuestionCard question={q} id={q.id} />
+                            <QuestionCard question={q} />
                         ))}
                     </div>
                 )}

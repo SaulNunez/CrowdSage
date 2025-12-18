@@ -31,12 +31,12 @@ namespace CrowdSage.Server.Controllers
             }
         }
 
-        [HttpGet("{id}")]
-        public IActionResult GetAction(string id)
+        [HttpGet("{id:guid}")]
+        public IActionResult GetAction(Guid id)
         {
             try
             {
-                var question = questionsService.GetQuestionById(Guid.Parse(id));
+                var question = questionsService.GetQuestionById(id);
                 return Ok(question);
             }
             catch (KeyNotFoundException)
