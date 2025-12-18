@@ -23,7 +23,7 @@ jobs:
         run: dotnet restore CrowdSage.sln
 
       - name: Build
-        run: dotnet build --no-restore --configuration Release
+        run: dotnet build CrowdSage.sln --no-restore --configuration Release
 
       - name: Test CrowdSage.Server.Tests
         run: |
