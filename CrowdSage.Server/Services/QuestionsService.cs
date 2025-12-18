@@ -64,7 +64,11 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
             Content = question.Content,
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow,
-            AuthorId = userId
+            AuthorId = userId,
+            Tags = new System.Collections.Generic.List<string>(),
+            Answers = new System.Collections.Generic.List<Answer>(),
+            Votes = new System.Collections.Generic.List<QuestionVote>(),
+            Comments = new System.Collections.Generic.List<QuestionComment>()
         };
 
         questionEntity.Votes.Add(new QuestionVote
@@ -76,6 +80,8 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
         dbContext.Questions.Add(questionEntity);
         await dbContext.SaveChangesAsync();
 
+        var author = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
         return new QuestionDto
         {
             Id = questionEntity.Id,
@@ -86,8 +92,8 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
             Votes = 1,
             Author = new AuthorDto
             {
-                Id = questionEntity.Author.Id,
-                UserName = questionEntity.Author.UserName
+                Id = author?.Id ?? userId,
+                UserName = author?.UserName ?? string.Empty
             }
         };
     }
@@ -143,6 +149,7 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
                 UserId = userId,
                 Vote = voteInput.Vote
             };
+            dbContext.QuestionVotes.Add(newVote);
         }
         else
         {
