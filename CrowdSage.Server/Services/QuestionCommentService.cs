@@ -22,17 +22,20 @@ public class QuestionCommentService(CrowdsageDbContext dbContext) : IQuestionCom
         {
             throw new ArgumentNullException(nameof(comment), "Comment cannot be null.");
         }
-
+        var question = await dbContext.Questions.FindAsync(questionId) ?? throw new KeyNotFoundException($"Question with ID {questionId} not found.");
         var questionCommentEntity = new QuestionComment
         {
             QuestionId = questionId,
             Content = comment.Content,
-            CreatedAt = DateTime.UtcNow,
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
             AuthorId = userId
         };
 
         dbContext.QuestionComments.Add(questionCommentEntity);
         await dbContext.SaveChangesAsync();
+
+        var author = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
 
         return new QuestionCommentDto
         {
@@ -41,8 +44,8 @@ public class QuestionCommentService(CrowdsageDbContext dbContext) : IQuestionCom
             UpdatedAt = questionCommentEntity.UpdatedAt,
             Author = new AuthorDto
             {
-                Id = questionCommentEntity.Author.Id,
-                UserName = questionCommentEntity.Author.UserName,
+                Id = author?.Id ?? userId,
+                UserName = author?.UserName ?? string.Empty,
             }
         };
     }
@@ -91,16 +94,16 @@ public class QuestionCommentService(CrowdsageDbContext dbContext) : IQuestionCom
             .Where(c => c.QuestionId == questionId)
             .ToListAsync();
 
-        return [.. comments.Select(comment => new QuestionCommentDto
+        return comments.Select(comment => new QuestionCommentDto
         {
             Content = comment.Content,
             CreatedAt = comment.CreatedAt,
             UpdatedAt = comment.UpdatedAt,
             Author = new AuthorDto
             {
-                Id = comment.Author.Id,
-                UserName = comment.Author.UserName,
+                Id = comment.Author?.Id ?? comment.AuthorId,
+                UserName = comment.Author?.UserName ?? string.Empty,
             }
-        })];
+        }).ToList();
     }
 }
