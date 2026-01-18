@@ -30,6 +30,7 @@ jobs:
           dotnet test ./CrowdSage.Server.Tests/CrowdSage.Server.Tests.csproj \
             --no-build \
             --configuration Release \
+            --results-directory ./TestResults \
             --logger "trx;LogFileName=TestResults.trx"
 
       - name: Upload test results
@@ -37,4 +38,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: '**/*.trx'
+          path: TestResults/*.trx
