@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import type { QuestionCreatePayload, Answer, AnswerComment, Question, QuestionComment, QuestionCommentCreatePayload, AnswerCommentCreatePayload, AnswerCreatePayload, UpvoteQuestionPayload, UpvoteAnswerPayload } from '../types';
+import type { QuestionCreatePayload, Answer, AnswerComment, Question, QuestionComment, QuestionCommentCreatePayload, AnswerCommentCreatePayload, AnswerCreatePayload, UpvoteQuestionPayload, UpvoteAnswerPayload, BookmarkQuestionPayload } from '../types';
 
 export const questionsApi = createApi({
   reducerPath: 'questionsApi',
@@ -19,6 +19,20 @@ export const questionsApi = createApi({
             url: `questions/${questionId}/vote`,
             method: 'POST',
             body: { voteInput },
+            invalidatesTags: (result, error, {questionId}) => [{ type: 'Question', id: questionId }],
+        }),
+    }),
+    bookmarkQuestion: build.mutation<void, BookmarkQuestionPayload>({
+        query: ({questionId}) => ({
+            url: `questions/${questionId}/bookmark`,
+            method: 'POST',
+            invalidatesTags: (result, error, {questionId}) => [{ type: 'Question', id: questionId }],
+        }),
+    }),
+    removeBookmarkQuestion: build.mutation<void, BookmarkQuestionPayload>({
+        query: ({questionId}) => ({
+            url: `questions/${questionId}/bookmark`,
+            method: 'DELETE',
             invalidatesTags: (result, error, {questionId}) => [{ type: 'Question', id: questionId }],
         }),
     }),
@@ -134,9 +148,12 @@ export const {
     useGetAnswersForQuestionQuery,
     useAddAnswerMutation,
     useEditAnswerMutation,
+    useUpvoteAnswerMutation,
     useGetCommentsForAnswerQuery,
     useAddCommentForAnswerMutation,
     useEditCommentForAnswerMutation,
     useGetBookmarkedQuestionsQuery,
-    useGetBookmarkedAnswersQuery
+    useGetBookmarkedAnswersQuery,
+    useBookmarkQuestionMutation,
+    useRemoveBookmarkQuestionMutation,
 } = questionsApi;

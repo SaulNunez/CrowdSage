@@ -6,7 +6,7 @@ import { Loading } from "../Components/Loading";
 import { ServerError } from "../Components/ServerError";
 import ReactMarkdown from "react-markdown";
 import { useParams } from "react-router";
-import { useAddAnswerMutation, useAddQuestionCommentMutation, useGetAnswersForQuestionQuery, useGetCommentsForQuestionQuery, useGetQuestionByIdQuery, useUpvoteQuestionMutation } from "../common/reducers";
+import { useAddAnswerMutation, useAddQuestionCommentMutation, useBookmarkQuestionMutation, useGetAnswersForQuestionQuery, useGetCommentsForQuestionQuery, useGetQuestionByIdQuery, useRemoveBookmarkQuestionMutation, useUpvoteQuestionMutation } from "../common/reducers";
 
 function QuestionCommentSection({ questionId }: { questionId: string }) {
   const { data, isLoading, error} = useGetCommentsForQuestionQuery(questionId);
@@ -94,9 +94,20 @@ export default function QuestionPage() {
 
   const {data: question, isLoading, error} = useGetQuestionByIdQuery(questionId!);
   const [upvoteQuestion, { isLoading: isUpvoting }] = useUpvoteQuestionMutation();
+  const [bookmarkQuestion] = useBookmarkQuestionMutation();
+  const [removeBookmarkQuestion] = useRemoveBookmarkQuestionMutation();
 
-  function toggleBookmarkQuestion() {
-    //setQuestion((q) => ({ ...q, bookmarked: !q.bookmarked }));
+  async function toggleBookmarkQuestion() {
+    if (!questionId) return;
+    try {
+      if (question.bookmarked) {
+        await removeBookmarkQuestion({ questionId }).unwrap();
+      } else {
+        await bookmarkQuestion({ questionId }).unwrap();
+      }
+    } catch (error) {
+      console.error("Failed to toggle bookmark", error);
+    }
   }
 
   async function handleUpvote() {

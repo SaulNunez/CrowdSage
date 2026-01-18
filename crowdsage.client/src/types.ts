@@ -53,3 +53,25 @@ export interface QuestionCreatePayload {
     title: string,
     content: string
 }
+
+type VoteValue = "Upvote" | "Neutral";
+
+export interface UpvoteQuestionPayload {
+    questionId: string,
+    voteInput: VoteValue
+}
+export interface UpvoteAnswerPayload {
+    questionId: string,
+    answerId: string,
+    voteInput: VoteValue
+}
+
+export interface BookmarkQuestionPayload
+{
+    questionId: string,
+}
+
+export interface BookmarkAnswerPayload
+{
+    answerId: string,
+}
