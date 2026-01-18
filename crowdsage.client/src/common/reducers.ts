@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import type { QuestionCreatePayload, Answer, AnswerComment, Question, QuestionComment, QuestionCommentCreatePayload, AnswerCommentCreatePayload, AnswerCreatePayload, UpvoteQuestionPayload, UpvoteAnswerPayload, BookmarkQuestionPayload, BookmarkAnswerPayload } from '../types';
+import type { QuestionCreatePayload, Answer, AnswerComment, Question, QuestionComment, QuestionCommentCreatePayload, AnswerCommentCreatePayload, AnswerCreatePayload, UpvoteQuestionPayload, UpvoteAnswerPayload, BookmarkQuestionPayload, BookmarkAnswerPayload, RegisterPayload } from '../types';
 
 export const questionsApi = createApi({
   reducerPath: 'questionsApi',
@@ -147,6 +147,13 @@ export const questionsApi = createApi({
     getBookmarkedAnswers: build.query<Answer[], void>({
         query: () => `answer/bookmark`,
     }),
+    registerUser: build.mutation<void, RegisterPayload>({
+        query: (data) => ({
+            url: `api/account/register`,
+            method: 'POST',
+            body: data
+        }),
+    })
   }),
 });
 
@@ -172,4 +179,5 @@ export const {
     useRemoveBookmarkQuestionMutation,
     useBookmarkAnswerMutation,
     useRemoveBookmarkAnswerMutation,
+    useRegisterUserMutation
 } = questionsApi;

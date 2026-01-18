@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router";
+import { useRegisterUserMutation } from "../common/reducers";
 
 export default function Register() {
   const [username, setUsername] = useState<string>("");
@@ -6,6 +8,9 @@ export default function Register() {
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
   const [darkMode, setDarkMode] = useState<boolean>(false);
+
+  const [registerUser, { isLoading }] = useRegisterUserMutation();
+  const navigate = useNavigate();
 
   const isFormValid =
     username.trim() !== "" &&
@@ -22,10 +27,16 @@ export default function Register() {
     }
   }, [darkMode]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isFormValid) return;
-    alert(`Registered successfully as ${username} (${email})`);
+
+    try {
+      await registerUser({ userName: username, email, password }).unwrap();
+      navigate("/auth/login");
+    } catch (error) {
+      alert("Registration failed. Please try again.");
+    }
   };
 
   return (
@@ -110,14 +121,14 @@ export default function Register() {
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={!isFormValid}
+            disabled={!isFormValid || isLoading}
             className={`w-full py-2 rounded-lg text-white font-medium transition ${
-              isFormValid
+              isFormValid && !isLoading
                 ? "bg-blue-600 hover:bg-blue-700"
                 : "bg-gray-400 cursor-not-allowed"
             }`}
           >
-            Register
+            {isLoading ? "Registering..." : "Register"}
           </button>
         </form>
       </div>
