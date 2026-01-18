@@ -6,7 +6,7 @@ import { Loading } from "../Components/Loading";
 import { ServerError } from "../Components/ServerError";
 import ReactMarkdown from "react-markdown";
 import { useParams } from "react-router";
-import { useAddAnswerMutation, useAddQuestionCommentMutation, useGetAnswersForQuestionQuery, useGetCommentsForQuestionQuery, useGetQuestionByIdQuery } from "../common/reducers";
+import { useAddAnswerMutation, useAddQuestionCommentMutation, useGetAnswersForQuestionQuery, useGetCommentsForQuestionQuery, useGetQuestionByIdQuery, useUpvoteQuestionMutation } from "../common/reducers";
 
 function QuestionCommentSection({ questionId }: { questionId: string }) {
   const { data, isLoading, error} = useGetCommentsForQuestionQuery(questionId);
@@ -45,17 +45,8 @@ function AnswerSection({ questionId }: { questionId: string }) {
     }
   }
 
-  function toggleBookmarkAnswer(id: string) {
-    //setAnswers((a) => a.map((ans) => (ans.id === id ? { ...ans, bookmarked: !ans.bookmarked } : ans)));
-    console.log(`Bookmarked ${id}`);
-  }
-
   if (isLoading) return <Loading />
   if (error) return <ServerError />
-
-  function upvoteAnswer(id: string): void {
-    throw new Error("Function not implemented.");
-  }
 
   return (
     <section className="mt-8">
@@ -67,8 +58,7 @@ function AnswerSection({ questionId }: { questionId: string }) {
             <AnswerCard
               key={a.id}
               answer={a}
-              onUpvote={() => upvoteAnswer(a.id)}
-              onBookmark={() => toggleBookmarkAnswer(a.id)}
+              questionId={questionId}
             />
           ))}
       </div>
@@ -98,10 +88,17 @@ function AnswerSection({ questionId }: { questionId: string }) {
 export default function QuestionPage() {
   const { questionId }  = useParams();
 
-  const {data: question, isLoading, error} = useGetQuestionByIdQuery(questionId);
+  const {data: question, isLoading, error} = useGetQuestionByIdQuery(questionId!);
+  const [upvoteQuestion] = useUpvoteQuestionMutation();
 
   function toggleBookmarkQuestion() {
     //setQuestion((q) => ({ ...q, bookmarked: !q.bookmarked }));
+  }
+
+  function handleUpvote() {
+    if (questionId) {
+      upvoteQuestion({ questionId, voteInput: 'Upvote' });
+    }
   }
 
   if (isLoading) return <Loading />;
@@ -130,19 +127,33 @@ export default function QuestionPage() {
         </header>
 
         <main className="bg-white rounded-lg shadow-sm p-6">
-          <section className="prose max-w-none">
-            <ReactMarkdown>{question.content}</ReactMarkdown>
-          </section>
+          <div className="flex gap-4">
+            <div className="w-16 flex flex-col items-center text-center">
+              <button
+                onClick={handleUpvote}
+                className="w-10 h-10 flex items-center justify-center rounded border text-sm hover:bg-gray-100"
+                aria-label="Upvote"
+              >
+                ▲
+              </button>
+              <div className="mt-2 text-sm font-medium">{question.votes}</div>
+            </div>
+            <div className="flex-1">
+              <section className="prose max-w-none">
+                <ReactMarkdown>{question.content}</ReactMarkdown>
+              </section>
 
-          <div className="mt-4 flex flex-wrap gap-2">
-            {question.tags.map((t) => (
-              <span key={t} className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-sm">
-                {t}
-              </span>
-            ))}
+              <div className="mt-4 flex flex-wrap gap-2">
+                {question.tags.map((t) => (
+                  <span key={t} className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-sm">
+                    {t}
+                  </span>
+                ))}
+              </div>
+
+              {questionId? <QuestionCommentSection questionId={questionId} /> : null}
+            </div>
           </div>
-
-          {questionId? <QuestionCommentSection questionId={questionId} /> : null}
 
           {questionId? <AnswerSection questionId={questionId} /> : null}
         </main>
