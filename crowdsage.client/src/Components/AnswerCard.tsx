@@ -5,21 +5,18 @@ import ReactMarkdown from 'react-markdown';
 import type { Answer } from '../types';
 import { ServerError } from './ServerError';
 import { Loading } from './Loading';
-import { useAddCommentForAnswerMutation, useGetCommentsForAnswerQuery } from '../common/reducers';
+import { useAddCommentForAnswerMutation, useGetCommentsForAnswerQuery, useUpvoteAnswerMutation } from '../common/reducers';
 
 interface AnswerCardProps {
   answer: Answer;
-  onUpvote: () => void;
-  onBookmark: () => void;
+  questionId: string;
 }
 
-export function AnswerCard({ answer, onUpvote, onBookmark }: AnswerCardProps) {
-
-  const questionId = "";
-  const answerId = "";
-
+export function AnswerCard({ answer, questionId }: AnswerCardProps) {
+  const answerId = answer.id;
   const { data: answerComments, isLoading, error } = useGetCommentsForAnswerQuery({answerId, questionId});
   const [ addAnswerComment, { isLoading: addingComment } ] = useAddCommentForAnswerMutation();
+  const [upvoteAnswer, { isLoading: isUpvoting }] = useUpvoteAnswerMutation();
 
   const createComment = (content: string) => {
     addAnswerComment({ data: { content }, questionId, answerId });
@@ -27,18 +24,35 @@ export function AnswerCard({ answer, onUpvote, onBookmark }: AnswerCardProps) {
 
   const [showCommentForm, setShowCommentForm] = useState<boolean>(false);
 
+  async function onUpvote() {
+    try {
+      await upvoteAnswer({ questionId, answerId, voteInput: 'Upvote' }).unwrap();
+    } catch (error) {
+      alert("An error ocurred and upvote couldn't be recorded");
+    }
+  }
+
+  function onBookmark(): void {
+    throw new Error('Function not implemented.');
+  }
+
   if (isLoading) return <Loading />;
   if (error) return <ServerError />;
-  
+
   return (
     <article className="bg-white rounded-lg shadow p-5 flex gap-4">
       <div className="w-16 flex flex-col items-center text-center">
         <button
           onClick={onUpvote}
+          disabled={isUpvoting}
           className="w-10 h-10 flex items-center justify-center rounded border text-sm"
           aria-label="Upvote"
         >
-          ▲
+          {isUpvoting ? (
+            <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-gray-600"></div>
+          ) : (
+            "▲"
+          )}
         </button>
         <div className="mt-2 text-sm font-medium">{answer.votes}</div>
       </div>
@@ -65,7 +79,7 @@ export function AnswerCard({ answer, onUpvote, onBookmark }: AnswerCardProps) {
 
         <div className="mt-4 border-t pt-3">
           <h4 className="text-sm font-medium">Comments</h4>
-          <CommentList comments={answerComments} />
+          <CommentList comments={answerComments!} />
           {showCommentForm ? (
             <CommentForm
               onSubmit={(text) => {
