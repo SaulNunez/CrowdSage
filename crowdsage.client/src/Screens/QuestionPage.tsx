@@ -94,8 +94,10 @@ export default function QuestionPage() {
 
   const {data: question, isLoading, error} = useGetQuestionByIdQuery(questionId!);
   const [upvoteQuestion, { isLoading: isUpvoting }] = useUpvoteQuestionMutation();
-  const [bookmarkQuestion] = useBookmarkQuestionMutation();
-  const [removeBookmarkQuestion] = useRemoveBookmarkQuestionMutation();
+  const [bookmarkQuestion, { isLoading: isBookmarking }] = useBookmarkQuestionMutation();
+  const [removeBookmarkQuestion, { isLoading: isRemovingBookmark }] = useRemoveBookmarkQuestionMutation();
+
+  const isBookmarkLoading = isBookmarking || isRemovingBookmark;
 
   async function toggleBookmarkQuestion() {
     if (!questionId) return;
@@ -137,9 +139,14 @@ export default function QuestionPage() {
               <button className="px-3 py-1 rounded-md bg-red-50 text-red-700 text-sm">Follow</button>
               <button
                 onClick={toggleBookmarkQuestion}
-                className="px-3 py-1 rounded-md border text-sm"
+                disabled={isBookmarkLoading}
+                className="px-3 py-1 rounded-md border text-sm min-w-[90px] flex justify-center"
               >
-                {question.bookmarked ? "Bookmarked" : "Bookmark"}
+                {isBookmarkLoading ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-gray-600"></div>
+                ) : (
+                  question.bookmarked ? "Bookmarked" : "Bookmark"
+                )}
               </button>
             </div>
           </div>
