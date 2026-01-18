@@ -74,4 +74,5 @@ export interface BookmarkQuestionPayload
 export interface BookmarkAnswerPayload
 {
     answerId: string,
+    questionId: string,
 }

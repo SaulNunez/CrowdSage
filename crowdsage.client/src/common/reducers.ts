@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import type { QuestionCreatePayload, Answer, AnswerComment, Question, QuestionComment, QuestionCommentCreatePayload, AnswerCommentCreatePayload, AnswerCreatePayload, UpvoteQuestionPayload, UpvoteAnswerPayload, BookmarkQuestionPayload } from '../types';
+import type { QuestionCreatePayload, Answer, AnswerComment, Question, QuestionComment, QuestionCommentCreatePayload, AnswerCommentCreatePayload, AnswerCreatePayload, UpvoteQuestionPayload, UpvoteAnswerPayload, BookmarkQuestionPayload, BookmarkAnswerPayload } from '../types';
 
 export const questionsApi = createApi({
   reducerPath: 'questionsApi',
@@ -104,6 +104,20 @@ export const questionsApi = createApi({
             invalidatesTags: (result, error, {questionId, answerId}) => [{ type: 'Answer', id: `${questionId}#${answerId}` }],
         }),
     }),
+    bookmarkAnswer: build.mutation<void, BookmarkAnswerPayload>({
+        query: ({answerId, questionId}) => ({
+            url: `api/questions/${questionId}/answers/${answerId}/bookmark`,
+            method: 'POST',
+            invalidatesTags: (result, error, {questionId, answerId}) => [{ type: 'Answer', id: `${questionId}#${answerId}` }],
+        }),
+    }),
+    removeBookmarkAnswer: build.mutation<void, BookmarkAnswerPayload>({
+        query: ({answerId, questionId}) => ({
+            url: `api/questions/${questionId}/answers/${answerId}/bookmark`,
+            method: 'DELETE',
+            invalidatesTags: (result, error, {questionId, answerId}) => [{ type: 'Answer', id: `${questionId}#${answerId}` }],
+        }),
+    }),
     getCommentsForAnswer: build.query<AnswerComment[], {answerId: string, questionId: string}>({
         query: ({answerId, questionId}) => `questions/${questionId}/answers/${answerId}/comments`,
         providesTags: (result, error, {answerId}) => [
@@ -156,4 +170,6 @@ export const {
     useGetBookmarkedAnswersQuery,
     useBookmarkQuestionMutation,
     useRemoveBookmarkQuestionMutation,
+    useBookmarkAnswerMutation,
+    useRemoveBookmarkAnswerMutation,
 } = questionsApi;

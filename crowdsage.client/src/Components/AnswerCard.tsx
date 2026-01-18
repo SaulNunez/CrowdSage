@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown';
 import type { Answer } from '../types';
 import { ServerError } from './ServerError';
 import { Loading } from './Loading';
-import { useAddCommentForAnswerMutation, useGetCommentsForAnswerQuery, useUpvoteAnswerMutation } from '../common/reducers';
+import { useAddCommentForAnswerMutation, useBookmarkAnswerMutation, useGetCommentsForAnswerQuery, useRemoveBookmarkAnswerMutation, useUpvoteAnswerMutation } from '../common/reducers';
 
 interface AnswerCardProps {
   answer: Answer;
@@ -17,12 +17,16 @@ export function AnswerCard({ answer, questionId }: AnswerCardProps) {
   const { data: answerComments, isLoading, error } = useGetCommentsForAnswerQuery({answerId, questionId});
   const [ addAnswerComment, { isLoading: addingComment } ] = useAddCommentForAnswerMutation();
   const [upvoteAnswer, { isLoading: isUpvoting }] = useUpvoteAnswerMutation();
+  const [bookmarkAnswer, { isLoading: isBookmarking }] = useBookmarkAnswerMutation();
+  const [removeBookmarkAnswer, { isLoading: isRemovingBookmark }] = useRemoveBookmarkAnswerMutation();
 
   const createComment = (content: string) => {
     addAnswerComment({ data: { content }, questionId, answerId });
   };
 
   const [showCommentForm, setShowCommentForm] = useState<boolean>(false);
+  
+  const isBookmarkLoading = isBookmarking || isRemovingBookmark;
 
   async function onUpvote() {
     try {
@@ -32,8 +36,16 @@ export function AnswerCard({ answer, questionId }: AnswerCardProps) {
     }
   }
 
-  function onBookmark(): void {
-    throw new Error('Function not implemented.');
+  async function onBookmark() {
+    try {
+      if (answer.bookmarked) {
+        await removeBookmarkAnswer({ questionId, answerId }).unwrap();
+      } else {
+        await bookmarkAnswer({ questionId, answerId }).unwrap();
+      }
+    } catch (error) {
+      console.error("Failed to toggle bookmark", error);
+    }
   }
 
   if (isLoading) return <Loading />;
@@ -67,9 +79,14 @@ export function AnswerCard({ answer, questionId }: AnswerCardProps) {
           </div>
           <button
             onClick={onBookmark}
-            className="text-sm px-2 py-1 border rounded"
+            disabled={isBookmarkLoading}
+            className="text-sm px-2 py-1 border rounded min-w-[80px] flex justify-center"
           >
-            {answer.bookmarked ? "Bookmarked" : "Bookmark"}
+            {isBookmarkLoading ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-gray-600"></div>
+            ) : (
+              answer.bookmarked ? "Bookmarked" : "Bookmark"
+            )}
           </button>
         </div>
 
