@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import type { QuestionCreatePayload, Answer, AnswerComment, Question, QuestionComment, QuestionCommentCreatePayload, AnswerCommentCreatePayload, AnswerCreatePayload } from '../types';
+import type { QuestionCreatePayload, Answer, AnswerComment, Question, QuestionComment, QuestionCommentCreatePayload, AnswerCommentCreatePayload, AnswerCreatePayload, UpvoteQuestionPayload } from '../types';
 
 export const questionsApi = createApi({
   reducerPath: 'questionsApi',
@@ -13,6 +13,14 @@ export const questionsApi = createApi({
             body: newQuestion,
             providesTags: ['Question'],
         })
+    }),
+    upvoteQuestion: build.mutation<void, UpvoteQuestionPayload>({
+        query: ({questionId, voteInput}) => ({
+            url: `questions/${questionId}/vote`,
+            method: 'POST',
+            body: { voteInput },
+            invalidatesTags: (result, error, {questionId}) => [{ type: 'Question', id: questionId }],
+        }),
     }),
     editQuestion: build.mutation<Question, {data: QuestionCreatePayload, questionId: string }>({
         query: ({data, questionId}) => ({
@@ -109,6 +117,7 @@ export const questionsApi = createApi({
 export const {
     useAddQuestionMutation,
     useEditQuestionMutation,
+    useUpvoteQuestionMutation,
     useGetQuestionByIdQuery,
     useGetNewQuestionsQuery,
     useGetCommentsForQuestionQuery,
