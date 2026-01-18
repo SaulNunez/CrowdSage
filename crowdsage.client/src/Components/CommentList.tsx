@@ -1,6 +1,6 @@
-import type { AnswerComment, QuestionComment } from '../types';
+import type { BaseComment } from '../types';
 
-export function CommentList({ comments = [] }: { comments: AnswerComment[] | QuestionComment[] }) {
+export function CommentList({ comments = [] }: { comments: BaseComment[] }) {
   if (!comments.length) return <div className="text-sm text-gray-500 mt-2">No comments yet.</div>;
   return (
     <ul className="mt-2 space-y-2">
