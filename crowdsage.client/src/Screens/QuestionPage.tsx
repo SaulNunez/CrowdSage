@@ -19,7 +19,11 @@ function QuestionCommentSection({ questionId }: { questionId: string }) {
   return (
     <div className="mt-6 border-t pt-4">
       <h3 className="text-lg font-medium">Comments</h3>
-      <CommentList comments={data} />
+      {data && data.length > 0 ? (
+        <CommentList comments={data} />
+      ) : (
+        <div className="text-sm text-gray-500 mt-2">No comments yet.</div>
+      )}
 
       <CommentForm onSubmit={(content) => addComment({data: {content}, questionId})} />
     </div>
