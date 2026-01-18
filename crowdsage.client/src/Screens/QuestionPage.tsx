@@ -93,15 +93,19 @@ export default function QuestionPage() {
   const { questionId }  = useParams();
 
   const {data: question, isLoading, error} = useGetQuestionByIdQuery(questionId!);
-  const [upvoteQuestion] = useUpvoteQuestionMutation();
+  const [upvoteQuestion, { isLoading: isUpvoting }] = useUpvoteQuestionMutation();
 
   function toggleBookmarkQuestion() {
     //setQuestion((q) => ({ ...q, bookmarked: !q.bookmarked }));
   }
 
-  function handleUpvote() {
+  async function handleUpvote() {
     if (questionId) {
-      upvoteQuestion({ questionId, voteInput: 'Upvote' });
+      try {
+        await upvoteQuestion({ questionId, voteInput: 'Upvote' }).unwrap();
+      } catch (error) {
+        alert("An error ocurred and upvote couldn't be recorded");
+      }
     }
   }
 
@@ -135,10 +139,15 @@ export default function QuestionPage() {
             <div className="w-16 flex flex-col items-center text-center">
               <button
                 onClick={handleUpvote}
+                disabled={isUpvoting}
                 className="w-10 h-10 flex items-center justify-center rounded border text-sm hover:bg-gray-100"
                 aria-label="Upvote"
               >
-                ▲
+                {isUpvoting ? (
+                  <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-gray-600"></div>
+                ) : (
+                  "▲"
+                )}
               </button>
               <div className="mt-2 text-sm font-medium">{question.votes}</div>
             </div>
