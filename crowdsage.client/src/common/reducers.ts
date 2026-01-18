@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import type { QuestionCreatePayload, Answer, AnswerComment, Question, QuestionComment, QuestionCommentCreatePayload, AnswerCommentCreatePayload, AnswerCreatePayload, UpvoteQuestionPayload } from '../types';
+import type { QuestionCreatePayload, Answer, AnswerComment, Question, QuestionComment, QuestionCommentCreatePayload, AnswerCommentCreatePayload, AnswerCreatePayload, UpvoteQuestionPayload, UpvoteAnswerPayload } from '../types';
 
 export const questionsApi = createApi({
   reducerPath: 'questionsApi',
@@ -81,6 +81,14 @@ export const questionsApi = createApi({
             body: data,
         }),
         invalidatesTags: (result, error, {questionId, answerId}) => [{ type: 'AnswerComment', id: `${questionId}#${answerId}` }],
+    }),
+    upvoteAnswer: build.mutation<void, UpvoteAnswerPayload>({
+        query: ({answerId, questionId, voteInput}) => ({
+            url: `api/questions/${questionId}/answers/${answerId}/vote`,
+            method: 'POST',
+            body: { voteInput },
+            invalidatesTags: (result, error, {questionId, answerId}) => [{ type: 'Answer', id: `${questionId}#${answerId}` }],
+        }),
     }),
     getCommentsForAnswer: build.query<AnswerComment[], {answerId: string, questionId: string}>({
         query: ({answerId, questionId}) => `questions/${questionId}/answers/${answerId}/comments`,
