@@ -1,6 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { QuestionCreatePayload, Answer, AnswerComment, Question, QuestionComment, QuestionCommentCreatePayload, AnswerCommentCreatePayload, AnswerCreatePayload, UpvoteQuestionPayload, UpvoteAnswerPayload, BookmarkQuestionPayload, BookmarkAnswerPayload, RegisterPayload } from '../types';
-<<<<<<< HEAD
 
 export interface LoginRequest {
     username: string;
@@ -12,8 +11,6 @@ export interface LoginResponse {
     token_type: string;
     expires_in: number;
 }
-=======
->>>>>>> 15bef9c730f70ede84e6f67a819041c762d8836a
 
 export const questionsApi = createApi({
   reducerPath: 'questionsApi',
