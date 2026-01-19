@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 public class AccountController(UserManager<CrowdsageUser> _userManager) : Controller
 {
-    [HttpPost]
+    [HttpPost("register")]
     [AllowAnonymous]
     public async Task<IActionResult> Register([FromBody] Register model)
     {

@@ -9,7 +9,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<CrowdsageDbContext>(options =>
 {
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found."));
+    //options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found."));
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found."));
     options.UseOpenIddict();
 });
 
@@ -134,7 +135,7 @@ static void InitializeDb(WebApplication app)
 {
     using var scope = app.Services.CreateScope();
     using var context = scope.ServiceProvider.GetService<CrowdsageDbContext>();
-    if(context == null)
+    if (context == null)
     {
         Console.WriteLine($"Couldn't find Context {nameof(CrowdsageDbContext)} in Dependency Injection, it might be that the database couldn't intialize correctly.");
     }

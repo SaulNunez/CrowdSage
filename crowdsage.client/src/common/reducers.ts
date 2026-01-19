@@ -1,5 +1,6 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { QuestionCreatePayload, Answer, AnswerComment, Question, QuestionComment, QuestionCommentCreatePayload, AnswerCommentCreatePayload, AnswerCreatePayload, UpvoteQuestionPayload, UpvoteAnswerPayload, BookmarkQuestionPayload, BookmarkAnswerPayload, RegisterPayload } from '../types';
+<<<<<<< HEAD
 
 export interface LoginRequest {
     username: string;
@@ -11,6 +12,8 @@ export interface LoginResponse {
     token_type: string;
     expires_in: number;
 }
+=======
+>>>>>>> 15bef9c730f70ede84e6f67a819041c762d8836a
 
 export const questionsApi = createApi({
   reducerPath: 'questionsApi',
@@ -173,6 +176,7 @@ export const questionsApi = createApi({
             method: 'POST',
             body: data
         }),
+<<<<<<< HEAD
     }),
     login: build.mutation<LoginResponse, LoginRequest>({
         query: (credentials) => ({
@@ -186,6 +190,8 @@ export const questionsApi = createApi({
                 scope: 'offline_access'
             }).toString(),
         }),
+=======
+>>>>>>> 15bef9c730f70ede84e6f67a819041c762d8836a
     })
   }),
 });
@@ -212,6 +218,10 @@ export const {
     useRemoveBookmarkQuestionMutation,
     useBookmarkAnswerMutation,
     useRemoveBookmarkAnswerMutation,
+<<<<<<< HEAD
     useRegisterUserMutation,
     useLoginMutation
+=======
+    useRegisterUserMutation
+>>>>>>> 15bef9c730f70ede84e6f67a819041c762d8836a
 } = questionsApi;
