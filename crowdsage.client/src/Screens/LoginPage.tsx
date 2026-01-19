@@ -1,9 +1,17 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router";
+import { useLoginMutation } from "../common/reducers";
+import { useDispatch } from "react-redux";
+import { setCredentials } from "../common/authSlice";
 
 export default function Login() {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [darkMode, setDarkMode] = useState<boolean>(false);
+
+  const [login, { isLoading }] = useLoginMutation();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const isFormValid = username.trim() !== "" && password.trim() !== "";
 
@@ -15,10 +23,17 @@ export default function Login() {
     }
   }, [darkMode]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!isFormValid) return;
-    alert(`Logged in as ${username}`);
+    
+    try {
+      const userData = await login({ username, password }).unwrap();
+      dispatch(setCredentials({ user: username, token: userData.access_token }));
+      navigate('/');
+    } catch (err) {
+      alert('Login failed. Please check your credentials.');
+    }
   };
 
   return (
@@ -68,14 +83,14 @@ export default function Login() {
           {/* Submit Button */}
           <button
             type="submit"
-            disabled={!isFormValid}
+            disabled={!isFormValid || isLoading}
             className={`w-full py-2 rounded-lg text-white font-medium transition ${
-              isFormValid
+              isFormValid && !isLoading
                 ? "bg-blue-600 hover:bg-blue-700"
                 : "bg-gray-400 cursor-not-allowed"
             }`}
           >
-            Login
+            {isLoading ? "Logging in..." : "Login"}
           </button>
         </form>
       </div>

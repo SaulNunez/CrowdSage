@@ -1,9 +1,29 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { QuestionCreatePayload, Answer, AnswerComment, Question, QuestionComment, QuestionCommentCreatePayload, AnswerCommentCreatePayload, AnswerCreatePayload, UpvoteQuestionPayload, UpvoteAnswerPayload, BookmarkQuestionPayload, BookmarkAnswerPayload, RegisterPayload } from '../types';
 
+export interface LoginRequest {
+    username: string;
+    password: string;
+}
+
+export interface LoginResponse {
+    access_token: string;
+    token_type: string;
+    expires_in: number;
+}
+
 export const questionsApi = createApi({
   reducerPath: 'questionsApi',
-  baseQuery: fetchBaseQuery({ baseUrl: process.env.CROWDSAGE_BACKEND_URL }),
+  baseQuery: fetchBaseQuery({ 
+    baseUrl: process.env.CROWDSAGE_BACKEND_URL,
+    prepareHeaders: (headers, { getState }) => {
+        const token = (getState() as any).auth?.token;
+        if (token) {
+            headers.set('authorization', `Bearer ${token}`);
+        }
+        return headers;
+    },
+  }),
   tagTypes: ['Question', 'QuestionComment', 'Answer', 'AnswerComment'],
   endpoints: (build) => ({
     addQuestion: build.mutation<Question, QuestionCreatePayload>({
@@ -153,6 +173,19 @@ export const questionsApi = createApi({
             method: 'POST',
             body: data
         }),
+    }),
+    login: build.mutation<LoginResponse, LoginRequest>({
+        query: (credentials) => ({
+            url: 'connect/token',
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({
+                grant_type: 'password',
+                username: credentials.username,
+                password: credentials.password,
+                scope: 'offline_access'
+            }).toString(),
+        }),
     })
   }),
 });
@@ -179,5 +212,6 @@ export const {
     useRemoveBookmarkQuestionMutation,
     useBookmarkAnswerMutation,
     useRemoveBookmarkAnswerMutation,
-    useRegisterUserMutation
+    useRegisterUserMutation,
+    useLoginMutation
 } = questionsApi;
