@@ -22,7 +22,8 @@ namespace CrowdSage.Server.Controllers
 
             try
             {
-                var questions = await questionsService.GetNewQuestionsAsync(take, (page - 1) * take);
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var questions = await questionsService.GetNewQuestionsAsync(userId,take, (page - 1) * take);
                 return Ok(questions);
             }
             catch (Exception ex)
@@ -37,7 +38,8 @@ namespace CrowdSage.Server.Controllers
         {
             try
             {
-                var question = questionsService.GetQuestionById(id);
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var question = questionsService.GetQuestionById(id, userId);
                 return Ok(question);
             }
             catch (KeyNotFoundException)
@@ -56,6 +58,7 @@ namespace CrowdSage.Server.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> AddQuestionAsync([FromBody] QuestionPayload question)
         {
             try
@@ -76,6 +79,7 @@ namespace CrowdSage.Server.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize]
         public async Task<IActionResult> EditQuestion(Guid id, [FromBody] QuestionPayload question)
         {
             try
@@ -99,6 +103,7 @@ namespace CrowdSage.Server.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize]
         public async Task<IActionResult> Delete(Guid id)
         {
             try

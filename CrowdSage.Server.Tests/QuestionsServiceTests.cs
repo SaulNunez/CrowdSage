@@ -45,11 +45,126 @@ public class QuestionsServiceTests
         Assert.NotNull(dto.Author);
         Assert.Equal(user.Id, dto.Author.Id);
         Assert.Equal(1, dto.Votes);
+        Assert.Equal(Models.Enums.VoteValue.Upvote, dto.CurrentUserVote);
 
         var inDb = await context.Questions.Include(q => q.Votes).FirstOrDefaultAsync(q => q.Id == dto.Id);
         Assert.NotNull(inDb);
         Assert.Single(inDb!.Votes);
         Assert.Equal(user.Id, inDb.Votes.First().UserId);
+    }
+
+    [Fact]
+    public async Task GetQuestionById_ReturnsDto_WithCorrectCurrentUserVote()
+    {
+        await using var context = CreateInMemoryContext();
+        var author = new CrowdsageUser { Id = "author", UserName = "author" };
+        var voter = new CrowdsageUser { Id = "voter", UserName = "voter" };
+        var nonVoter = new CrowdsageUser { Id = "nonVoter", UserName = "nonVoter" };
+        await context.Users.AddRangeAsync(author, voter, nonVoter);
+
+        var question = new Question
+        {
+            Id = Guid.NewGuid(),
+            Title = "Title",
+            Content = "Content",
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            AuthorId = author.Id,
+            Author = author,
+            Tags = new System.Collections.Generic.List<string>(),
+            Answers = new System.Collections.Generic.List<Answer>(),
+            Votes = new System.Collections.Generic.List<QuestionVote>(),
+            Comments = new System.Collections.Generic.List<QuestionComment>()
+        };
+        await context.Questions.AddAsync(question);
+
+        var vote = new QuestionVote { QuestionId = question.Id, UserId = voter.Id, Vote = Models.Enums.VoteValue.Upvote };
+        await context.QuestionVotes.AddAsync(vote);
+        await context.SaveChangesAsync();
+
+        var svc = new QuestionsService(context);
+
+        // Case 1: No user logged in (userId is null) -> Expect Neutral
+        var dtoNoUser = svc.GetQuestionById(question.Id, null);
+        Assert.Equal(Models.Enums.VoteValue.Neutral, dtoNoUser.CurrentUserVote);
+
+        // Case 2: User logged in and voted (voter) -> Expect Upvote
+        var dtoVoter = svc.GetQuestionById(question.Id, voter.Id);
+        Assert.Equal(Models.Enums.VoteValue.Upvote, dtoVoter.CurrentUserVote);
+
+        // Case 3: User logged in but hasn't voted (nonVoter) -> Expect Neutral
+        var dtoNonVoter = svc.GetQuestionById(question.Id, nonVoter.Id);
+        Assert.Equal(Models.Enums.VoteValue.Neutral, dtoNonVoter.CurrentUserVote);
+    }
+
+    [Fact]
+    public async Task GetNewQuestionsAsync_ReturnsDtos_WithCorrectCurrentUserVote()
+    {
+        await using var context = CreateInMemoryContext();
+        var author = new CrowdsageUser { Id = "author", UserName = "author" };
+        var voter = new CrowdsageUser { Id = "voter", UserName = "voter" };
+        var nonVoter = new CrowdsageUser { Id = "nonVoter", UserName = "nonVoter" };
+        await context.Users.AddRangeAsync(author, voter, nonVoter);
+
+        var q1 = new Question
+        {
+            Id = Guid.NewGuid(),
+            Title = "Q1",
+            Content = "C1",
+            CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10),
+            UpdatedAt = DateTimeOffset.UtcNow,
+            AuthorId = author.Id,
+            Author = author,
+            Tags = new System.Collections.Generic.List<string>(),
+            Answers = new System.Collections.Generic.List<Answer>(),
+            Votes = new System.Collections.Generic.List<QuestionVote>(),
+            Comments = new System.Collections.Generic.List<QuestionComment>()
+        };
+        var q2 = new Question
+        {
+            Id = Guid.NewGuid(),
+            Title = "Q2",
+            Content = "C2",
+            CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-5),
+            UpdatedAt = DateTimeOffset.UtcNow,
+            AuthorId = author.Id,
+            Author = author,
+            Tags = new System.Collections.Generic.List<string>(),
+            Answers = new System.Collections.Generic.List<Answer>(),
+            Votes = new System.Collections.Generic.List<QuestionVote>(),
+            Comments = new System.Collections.Generic.List<QuestionComment>()
+        };
+        await context.Questions.AddRangeAsync(q1, q2);
+
+        var vote = new QuestionVote { QuestionId = q1.Id, UserId = voter.Id, Vote = Models.Enums.VoteValue.Upvote };
+        await context.QuestionVotes.AddAsync(vote);
+        await context.SaveChangesAsync();
+
+        var svc = new QuestionsService(context);
+
+        // Case 1: No user logged in
+        var listNoUser = await svc.GetNewQuestionsAsync(null);
+        var dtoQ1_NoUser = listNoUser.First(q => q.Id == q1.Id);
+        var dtoQ2_NoUser = listNoUser.First(q => q.Id == q2.Id);
+        
+        Assert.Equal(Models.Enums.VoteValue.Neutral, dtoQ1_NoUser.CurrentUserVote);
+        Assert.Equal(Models.Enums.VoteValue.Neutral, dtoQ2_NoUser.CurrentUserVote);
+
+        // Case 2: Voter logged in
+        var listVoter = await svc.GetNewQuestionsAsync(voter.Id);
+        var dtoQ1_Voter = listVoter.First(q => q.Id == q1.Id);
+        var dtoQ2_Voter = listVoter.First(q => q.Id == q2.Id);
+
+        Assert.Equal(Models.Enums.VoteValue.Upvote, dtoQ1_Voter.CurrentUserVote);
+        Assert.Equal(Models.Enums.VoteValue.Neutral, dtoQ2_Voter.CurrentUserVote);
+
+        // Case 3: Non-voter logged in
+        var listNonVoter = await svc.GetNewQuestionsAsync(nonVoter.Id);
+        var dtoQ1_NonVoter = listNonVoter.First(q => q.Id == q1.Id);
+        var dtoQ2_NonVoter = listNonVoter.First(q => q.Id == q2.Id);
+
+        Assert.Equal(Models.Enums.VoteValue.Neutral, dtoQ1_NonVoter.CurrentUserVote);
+        Assert.Equal(Models.Enums.VoteValue.Neutral, dtoQ2_NonVoter.CurrentUserVote);
     }
 
     [Fact]

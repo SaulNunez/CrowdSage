@@ -1,3 +1,5 @@
+using CrowdSage.Server.Models.Enums;
+
 namespace CrowdSage.Server.Models.Outputs;
 
 public record QuestionDto
@@ -9,4 +11,5 @@ public record QuestionDto
     public AuthorDto Author { get; init; }
     public DateTimeOffset CreatedAt { get; init; }
     public DateTimeOffset UpdatedAt { get; init; }
+    public VoteValue? CurrentUserVote { get; init; }
 }

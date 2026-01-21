@@ -7,7 +7,7 @@ namespace CrowdSage.Server.Services;
 
 public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
 {
-    public QuestionDto GetQuestionById(Guid id)
+    public QuestionDto GetQuestionById(Guid id, string? userId)
     {
         var question = dbContext.Questions.Find(id) ?? throw new KeyNotFoundException($"Question with ID {id} not found.");
 
@@ -18,7 +18,11 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
             CreatedAt = question.CreatedAt,
             UpdatedAt = question.UpdatedAt,
             Bookmarked = false,
-            Votes = 1,
+            Votes = question.Votes.Count(v => v.Vote == Models.Enums.VoteValue.Upvote),
+            CurrentUserVote = question.Votes
+                    .Where(v => v.UserId == userId)
+                    .Select(v => v.Vote)
+                    .FirstOrDefault(),
             Author = new AuthorDto
             {
                 Id = question.Author.Id,
@@ -27,7 +31,7 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
         };
     }
 
-    public async Task<List<QuestionDto>> GetNewQuestionsAsync(int take = 10, int offset = 0)
+    public async Task<List<QuestionDto>> GetNewQuestionsAsync(string? userId, int take = 10, int offset = 0)
     {
         var questions = dbContext.Questions
             .OrderByDescending(q => q.CreatedAt)
@@ -42,6 +46,10 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
                 UpdatedAt = q.UpdatedAt,
                 Bookmarked = false,
                 Votes = q.Votes.Count(v => v.Vote == Models.Enums.VoteValue.Upvote),
+                CurrentUserVote = q.Votes
+                    .Where(v => v.UserId == userId)
+                    .Select(v => v.Vote)
+                    .FirstOrDefault(),
                 Author = new AuthorDto
                 {
                     Id = q.Author.Id,
@@ -65,10 +73,10 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
             CreatedAt = DateTimeOffset.UtcNow,
             UpdatedAt = DateTimeOffset.UtcNow,
             AuthorId = userId,
-            Tags = new System.Collections.Generic.List<string>(),
-            Answers = new System.Collections.Generic.List<Answer>(),
-            Votes = new System.Collections.Generic.List<QuestionVote>(),
-            Comments = new System.Collections.Generic.List<QuestionComment>()
+            Tags = [],
+            Answers = [],
+            Votes = [],
+            Comments = []
         };
 
         questionEntity.Votes.Add(new QuestionVote
@@ -89,7 +97,11 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
             CreatedAt = questionEntity.CreatedAt,
             UpdatedAt = questionEntity.UpdatedAt,
             Bookmarked = false,
-            Votes = 1,
+            Votes = questionEntity.Votes.Count(v => v.Vote == Models.Enums.VoteValue.Upvote),
+            CurrentUserVote = questionEntity.Votes
+                    .Where(v => v.UserId == userId)
+                    .Select(v => v.Vote)
+                    .FirstOrDefault(),
             Author = new AuthorDto
             {
                 Id = author?.Id ?? userId,
@@ -176,6 +188,10 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
                 UpdatedAt = q.UpdatedAt,
                 Bookmarked = true,
                 Votes = q.Votes.Count(v => v.Vote == Models.Enums.VoteValue.Upvote),
+                CurrentUserVote = q.Votes
+                    .Where(v => v.UserId == userId)
+                    .Select(v => v.Vote)
+                    .FirstOrDefault(),
                 Author = new AuthorDto
                 {
                     Id = q.Author.Id,
@@ -188,11 +204,11 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
 
 public interface IQuestionsService
 {
-    public QuestionDto GetQuestionById(Guid id);
+    public QuestionDto GetQuestionById(Guid id, string? userId);
     public Task<QuestionDto> AddQuestionAsync(QuestionPayload question, string userId);
     public Task EditQuestion(Guid guid, QuestionPayload question);
     public Task DeleteQuestion(Guid id);
-    Task<List<QuestionDto>> GetNewQuestionsAsync(int take = 10, int offset = 0);
+    Task<List<QuestionDto>> GetNewQuestionsAsync(string? userId, int take = 10, int offset = 0);
     void BookmarkQuestion(Guid questionId, string userId);
     void RemoveBookmarkFromQuestion(Guid questionId, string userId);
     Task VoteOnQuestion(Guid answerId, string userId, VoteInput voteInput);
