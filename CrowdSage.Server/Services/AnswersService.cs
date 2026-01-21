@@ -57,11 +57,15 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
                 UserName = author?.UserName ?? string.Empty,
             },
             Bookmarked = false,
-            Votes = 1
+            Votes = 1,
+            CurrentUserVote = answerEntity.Votes
+                    .Where(v => v.UserId == userId)
+                    .Select(v => v.Vote)
+                    .FirstOrDefault(),
         };
     }
 
-    public async Task<IEnumerable<AnswerDto>> GetAnswersForQuestion(Guid questionId)
+    public async Task<IEnumerable<AnswerDto>> GetAnswersForQuestion(Guid questionId, string? userId)
     {
         var answers = await dbContext.Answers
             .Where(a => a.QuestionId == questionId)
@@ -74,6 +78,10 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
             CreatedAt = a.CreatedAt,
             UpdatedAt = a.UpdatedAt,
             Content = a.Content,
+            CurrentUserVote = a.Votes
+                    .Where(v => v.UserId == userId)
+                    .Select(v => v.Vote)
+                    .FirstOrDefault(),
             Author = new AuthorDto
             {
                 Id = a.Author.Id,
@@ -158,6 +166,10 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
             CreatedAt = a.CreatedAt,
             UpdatedAt = a.UpdatedAt,
             Content = a.Content,
+            CurrentUserVote = a.Votes
+                    .Where(v => v.UserId == userId)
+                    .Select(v => v.Vote)
+                    .FirstOrDefault(),
             Author = new AuthorDto
             {
                 Id = a.Author.Id,
@@ -172,7 +184,7 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
 public interface IAnswersService
 {
     public Task<AnswerDto> AddAnswerAsync(AnswerPayload answer, Guid questionId, string userId);
-    public Task<IEnumerable<AnswerDto>> GetAnswersForQuestion(Guid questionId);
+    public Task<IEnumerable<AnswerDto>> GetAnswersForQuestion(Guid questionId, string? userId);
     public Task EditAnswer(Guid guid, AnswerPayload answer);
     public Task DeleteAnswer(Guid id);
     void BookmarkAnswer(Guid answerId, string userId);

@@ -69,6 +69,7 @@ public class AnswersServiceTests
         Assert.Equal(user.UserName, dto.Author.UserName);
         Assert.Equal(1, dto.Votes);
         Assert.False(dto.Bookmarked);
+        Assert.Equal(Models.Enums.VoteValue.Upvote, dto.CurrentUserVote);
 
         // Assert DB state
         var answersInDb = context.Answers.Include(a => a.Votes).Where(a => a.QuestionId == question.Id).ToList();
@@ -91,6 +92,67 @@ public class AnswersServiceTests
         var payload = new AnswerPayload { Content = "x" };
 
         await Assert.ThrowsAsync<KeyNotFoundException>(() => svc.AddAnswerAsync(payload, Guid.NewGuid(), user.Id));
+    }
+
+    [Fact]
+    public async Task GetAnswersForQuestion_ReturnsDtos_WithCorrectCurrentUserVote()
+    {
+        await using var context = CreateInMemoryContext();
+        var author = new CrowdsageUser { Id = "author", UserName = "author" };
+        var voter = new CrowdsageUser { Id = "voter", UserName = "voter" };
+        var nonVoter = new CrowdsageUser { Id = "nonVoter", UserName = "nonVoter" };
+        await context.Users.AddRangeAsync(author, voter, nonVoter);
+
+        var question = new Question
+        {
+            Id = Guid.NewGuid(),
+            Title = "Q",
+            Content = "C",
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            Tags = new System.Collections.Generic.List<string>(),
+            Answers = new System.Collections.Generic.List<Answer>(),
+            Votes = new System.Collections.Generic.List<QuestionVote>(),
+            Comments = new System.Collections.Generic.List<QuestionComment>(),
+            AuthorId = author.Id,
+            Author = author
+        };
+        await context.Questions.AddAsync(question);
+
+        var answer = new Answer
+        {
+            Content = "Ans",
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            AuthorId = author.Id,
+            Author = author,
+            QuestionId = question.Id,
+            Question = question,
+            Votes = new System.Collections.Generic.List<AnswerVote>(),
+            Comments = new System.Collections.Generic.List<AnswerComment>()
+        };
+        await context.Answers.AddAsync(answer);
+
+        var vote = new AnswerVote { AnswerId = answer.Id, UserId = voter.Id, Vote = Models.Enums.VoteValue.Upvote };
+        await context.AnswerVotes.AddAsync(vote);
+        await context.SaveChangesAsync();
+
+        var svc = new AnswersService(context);
+
+        // Case 1: No user logged in
+        var answersNoUser = await svc.GetAnswersForQuestion(question.Id, null);
+        var dtoNoUser = answersNoUser.First();
+        Assert.Equal(Models.Enums.VoteValue.Neutral, dtoNoUser.CurrentUserVote);
+
+        // Case 2: Voter logged in
+        var answersVoter = await svc.GetAnswersForQuestion(question.Id, voter.Id);
+        var dtoVoter = answersVoter.First();
+        Assert.Equal(Models.Enums.VoteValue.Upvote, dtoVoter.CurrentUserVote);
+
+        // Case 3: Non-voter logged in
+        var answersNonVoter = await svc.GetAnswersForQuestion(question.Id, nonVoter.Id);
+        var dtoNonVoter = answersNonVoter.First();
+        Assert.Equal(Models.Enums.VoteValue.Neutral, dtoNonVoter.CurrentUserVote);
     }
 
     [Fact]
@@ -143,6 +205,7 @@ public class AnswersServiceTests
         var dto = bookmarked.First();
         Assert.True(dto.Bookmarked);
         Assert.Equal(answer.Content, dto.Content);
+        Assert.Equal(Models.Enums.VoteValue.Neutral, dto.CurrentUserVote);
     }
 
     [Fact]

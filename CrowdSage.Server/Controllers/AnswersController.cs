@@ -12,6 +12,7 @@ namespace CrowdSage.Server.Controllers;
 [ApiController]
 public class AnswersController(IAnswersService answersService, ILogger<AnswersController> logger) : ControllerBase
 {
+    [Authorize]
     [HttpPost]
     public async Task<IActionResult> CreateAnswerAsync([FromBody] AnswerPayload answer, Guid questionId)
     {
@@ -41,7 +42,8 @@ public class AnswersController(IAnswersService answersService, ILogger<AnswersCo
     {
         try
         {
-            var answers = await answersService.GetAnswersForQuestion(questionId);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var answers = await answersService.GetAnswersForQuestion(questionId, userId);
             return Ok(answers);
         }
         catch (Exception ex)
@@ -51,6 +53,7 @@ public class AnswersController(IAnswersService answersService, ILogger<AnswersCo
         }
     }
 
+    [Authorize]
     [HttpPut("{id}")]
     public async Task<IActionResult> EditAnswer(Guid id, [FromBody] AnswerPayload answer)
     {
@@ -74,6 +77,7 @@ public class AnswersController(IAnswersService answersService, ILogger<AnswersCo
         }
     }
 
+    [Authorize]
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteAnswer(Guid id)
     {
