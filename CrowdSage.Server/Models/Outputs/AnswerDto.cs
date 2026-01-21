@@ -4,9 +4,9 @@ namespace CrowdSage.Server.Models.Outputs;
 
 public record AnswerDto
 {
-    public Guid Id { get; init; }
-    public string Content { get; init; }
-    public int Votes { get; init; }
+    public required Guid Id { get; init; }
+    public required string Content { get; init; }
+    public required int Votes { get; init; }
     public bool Bookmarked { get; init; }
     public AuthorDto Author { get; init; }
     public DateTimeOffset CreatedAt { get; init; }

@@ -29,8 +29,8 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
             UpdatedAt = DateTimeOffset.UtcNow,
             AuthorId = userId,
             QuestionId = questionId,
-            Votes = new List<AnswerVote>(),
-            Comments = new List<AnswerComment>(),
+            Votes = [],
+            Comments = [],
         };
 
         answerEntity.Votes.Add(new AnswerVote
@@ -57,7 +57,7 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
                 UserName = author?.UserName ?? string.Empty,
             },
             Bookmarked = false,
-            Votes = 1,
+            Votes = answerEntity.Votes.Count(x=> x.Vote == VoteValue.Upvote),
             CurrentUserVote = answerEntity.Votes
                     .Where(v => v.UserId == userId)
                     .Select(v => v.Vote)
@@ -78,6 +78,7 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
             CreatedAt = a.CreatedAt,
             UpdatedAt = a.UpdatedAt,
             Content = a.Content,
+            Votes = a.Votes.Count(x=> x.Vote == VoteValue.Upvote),
             CurrentUserVote = a.Votes
                     .Where(v => v.UserId == userId)
                     .Select(v => v.Vote)
@@ -166,6 +167,7 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
             CreatedAt = a.CreatedAt,
             UpdatedAt = a.UpdatedAt,
             Content = a.Content,
+            Votes = a.Votes.Count(x=> x.Vote == VoteValue.Upvote),
             CurrentUserVote = a.Votes
                     .Where(v => v.UserId == userId)
                     .Select(v => v.Vote)
