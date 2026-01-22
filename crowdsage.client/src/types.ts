@@ -30,7 +30,8 @@ export interface Question extends IDateable {
     tags: string[],
     bookmarked: boolean,
     author: Author,
-    currentUserVote: VoteValue | null
+    currentUserVote: VoteValue | null,
+    votes: number,
 }
 
 export interface Author {
