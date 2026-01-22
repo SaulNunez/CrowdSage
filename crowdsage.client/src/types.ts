@@ -9,7 +9,8 @@ export interface Answer extends IDateable {
     content: string,
     votes: number,
     bookmarked: boolean,
-    author: Author
+    author: Author,
+    currentUserVote: VoteValue | null
 }
 
 export interface BaseComment extends IDateable {
@@ -28,7 +29,8 @@ export interface Question extends IDateable {
     content: string
     tags: string[],
     bookmarked: boolean,
-    author: Author
+    author: Author,
+    currentUserVote: VoteValue | null
 }
 
 export interface Author {

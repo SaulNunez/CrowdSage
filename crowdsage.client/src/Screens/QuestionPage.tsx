@@ -158,7 +158,11 @@ export default function QuestionPage() {
               <button
                 onClick={handleUpvote}
                 disabled={isUpvoting}
-                className="w-10 h-10 flex items-center justify-center rounded border text-sm hover:bg-gray-100"
+                className={`w-10 h-10 flex items-center justify-center rounded border text-sm transition-colors ${
+                  question.currentUserVote === 'Upvote'
+                    ? "bg-blue-100 text-blue-600 border-blue-200 hover:bg-blue-200"
+                    : "bg-white text-gray-500 border-gray-200 hover:bg-gray-50"
+                }`}
                 aria-label="Upvote"
               >
                 {isUpvoting ? (
