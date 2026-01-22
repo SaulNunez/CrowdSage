@@ -42,9 +42,6 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
         dbContext.Answers.Add(answerEntity);
         await dbContext.SaveChangesAsync();
 
-        // Ensure author information is available for the returned DTO
-        var author = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
-
         return new AnswerDto
         {
             Id = answerEntity.Id,
@@ -53,8 +50,9 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
             Content = answerEntity.Content,
             Author = new AuthorDto
             {
-                Id = author?.Id ?? userId,
-                UserName = author?.UserName ?? string.Empty,
+                Id = answerEntity.Author.Id,
+                UserName = answerEntity.Author.UserName,
+                UrlPhoto = answerEntity.Author.ProfilePicObjectKey
             },
             Bookmarked = false,
             Votes = answerEntity.Votes.Count(x=> x.Vote == VoteValue.Upvote),
@@ -87,7 +85,9 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
             {
                 Id = a.Author.Id,
                 UserName = a.Author.UserName,
-            }
+                UrlPhoto = a.Author.ProfilePicObjectKey
+            },
+            Bookmarked = false
         });
     }
 
@@ -176,9 +176,10 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
             {
                 Id = a.Author.Id,
                 UserName = a.Author.UserName,
+                UrlPhoto = a.Author.ProfilePicObjectKey
             }
             ,
-            Bookmarked = true
+            Bookmarked = false
         }).ToList();
     }
 }

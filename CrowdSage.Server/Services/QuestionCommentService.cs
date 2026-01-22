@@ -35,17 +35,17 @@ public class QuestionCommentService(CrowdsageDbContext dbContext) : IQuestionCom
         dbContext.QuestionComments.Add(questionCommentEntity);
         await dbContext.SaveChangesAsync();
 
-        var author = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
-
         return new QuestionCommentDto
         {
+            Id = questionCommentEntity.Id,
             Content = questionCommentEntity.Content,
             CreatedAt = questionCommentEntity.CreatedAt,
             UpdatedAt = questionCommentEntity.UpdatedAt,
             Author = new AuthorDto
             {
-                Id = author?.Id ?? userId,
-                UserName = author?.UserName ?? string.Empty,
+                Id = questionCommentEntity.Author.Id,
+                UserName =questionCommentEntity.Author.UserName,
+                UrlPhoto = questionCommentEntity.Author.ProfilePicObjectKey
             }
         };
     }
@@ -55,6 +55,7 @@ public class QuestionCommentService(CrowdsageDbContext dbContext) : IQuestionCom
         var comment = await dbContext.QuestionComments.FindAsync(id) ?? throw new KeyNotFoundException($"Comment with ID {id} not found.");
         return new QuestionCommentDto
         {
+            Id = comment.Id,
             Content = comment.Content,
             CreatedAt = comment.CreatedAt,
             UpdatedAt = comment.UpdatedAt,
@@ -62,6 +63,7 @@ public class QuestionCommentService(CrowdsageDbContext dbContext) : IQuestionCom
             {
                 Id = comment.Author.Id,
                 UserName = comment.Author.UserName,
+                UrlPhoto = comment.Author.ProfilePicObjectKey
             }
         };
     }
@@ -96,13 +98,15 @@ public class QuestionCommentService(CrowdsageDbContext dbContext) : IQuestionCom
 
         return comments.Select(comment => new QuestionCommentDto
         {
+            Id = comment.Id,
             Content = comment.Content,
             CreatedAt = comment.CreatedAt,
             UpdatedAt = comment.UpdatedAt,
             Author = new AuthorDto
             {
-                Id = comment.Author?.Id ?? comment.AuthorId,
-                UserName = comment.Author?.UserName ?? string.Empty,
+                Id = comment.Author.Id,
+                UserName = comment.Author.UserName,
+                UrlPhoto = comment.Author.ProfilePicObjectKey
             }
         }).ToList();
     }

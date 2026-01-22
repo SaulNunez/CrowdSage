@@ -26,7 +26,8 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
             Author = new AuthorDto
             {
                 Id = question.Author.Id,
-                UserName = question.Author.UserName
+                UserName = question.Author.UserName,
+                UrlPhoto = question.Author.ProfilePicObjectKey
             }
         };
     }
@@ -53,7 +54,8 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
                 Author = new AuthorDto
                 {
                     Id = q.Author.Id,
-                    UserName = q.Author.UserName
+                    UserName = q.Author.UserName,
+                    UrlPhoto = q.Author.ProfilePicObjectKey
                 }
             })
             .ToList();
@@ -88,8 +90,6 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
         dbContext.Questions.Add(questionEntity);
         await dbContext.SaveChangesAsync();
 
-        var author = await dbContext.Users.FirstOrDefaultAsync(u => u.Id == userId);
-
         return new QuestionDto
         {
             Id = questionEntity.Id,
@@ -104,8 +104,9 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
                     .FirstOrDefault(),
             Author = new AuthorDto
             {
-                Id = author?.Id ?? userId,
-                UserName = author?.UserName ?? string.Empty
+                Id = questionEntity.Author.Id ?? userId,
+                UserName = questionEntity.Author.UserName,
+                UrlPhoto = questionEntity.Author.ProfilePicObjectKey
             }
         };
     }
@@ -195,7 +196,8 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
                 Author = new AuthorDto
                 {
                     Id = q.Author.Id,
-                    UserName = q.Author.UserName
+                    UserName = q.Author.UserName,
+                    UrlPhoto = q.Author.ProfilePicObjectKey
                 }
             })
             .ToList();

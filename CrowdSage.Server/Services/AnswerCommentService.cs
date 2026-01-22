@@ -44,7 +44,8 @@ public class AnswerCommentService(CrowdsageDbContext dbContext) : IAnswerComment
             Author = new AuthorDto
             {
                 Id = answerCommentEntity.Author.Id,
-                UserName = answerCommentEntity.Author.UserName
+                UserName = answerCommentEntity.Author.UserName,
+                UrlPhoto = answerCommentEntity.Author.ProfilePicObjectKey
             }
         };
     }
@@ -62,7 +63,8 @@ public class AnswerCommentService(CrowdsageDbContext dbContext) : IAnswerComment
             Author = new AuthorDto
             {
                 Id = comment.Author.Id,
-                UserName = comment.Author.UserName
+                UserName = comment.Author.UserName,
+                UrlPhoto = comment.Author.ProfilePicObjectKey
             }
         };
     }
@@ -105,7 +107,8 @@ public class AnswerCommentService(CrowdsageDbContext dbContext) : IAnswerComment
                 Author = new AuthorDto
                 {
                     Id = comment.Author.Id,
-                    UserName = comment.Author.UserName
+                    UserName = comment.Author.UserName,
+                    UrlPhoto = comment.Author.ProfilePicObjectKey
                 }
             })];
     }
