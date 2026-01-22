@@ -54,7 +54,7 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
                 UserName = answerEntity.Author.UserName,
                 UrlPhoto = answerEntity.Author.ProfilePicObjectKey
             },
-            Bookmarked = false,
+            Bookmarked = answerEntity.UserBookmarks.Any(ub => ub.UserId == userId),
             Votes = answerEntity.Votes.Count(x=> x.Vote == VoteValue.Upvote),
             CurrentUserVote = answerEntity.Votes
                     .Where(v => v.UserId == userId)
@@ -87,7 +87,7 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
                 UserName = a.Author.UserName,
                 UrlPhoto = a.Author.ProfilePicObjectKey
             },
-            Bookmarked = false
+            Bookmarked = a.UserBookmarks.Any(ub => ub.UserId == userId)
         });
     }
 
@@ -179,7 +179,7 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
                 UrlPhoto = a.Author.ProfilePicObjectKey
             }
             ,
-            Bookmarked = false
+            Bookmarked = a.UserBookmarks.Any(ub => ub.UserId == userId)
         }).ToList();
     }
 }

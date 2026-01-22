@@ -98,6 +98,52 @@ public class QuestionsServiceTests
     }
 
     [Fact]
+    public async Task GetQuestionById_ReturnsDto_WithCorrectBookmarkedStatus()
+    {
+        await using var context = CreateInMemoryContext();
+        var author = new CrowdsageUser { Id = "author", UserName = "author" };
+        var bookmarker = new CrowdsageUser { Id = "bookmarker", UserName = "bookmarker" };
+        var nonBookmarker = new CrowdsageUser { Id = "nonBookmarker", UserName = "nonBookmarker" };
+        await context.Users.AddRangeAsync(author, bookmarker, nonBookmarker);
+
+        var question = new Question
+        {
+            Id = Guid.NewGuid(),
+            Title = "Title",
+            Content = "Content",
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            AuthorId = author.Id,
+            Author = author,
+            Tags = new System.Collections.Generic.List<string>(),
+            Answers = new System.Collections.Generic.List<Answer>(),
+            Votes = new System.Collections.Generic.List<QuestionVote>(),
+            Comments = new System.Collections.Generic.List<QuestionComment>(),
+            UserBookmarks = new System.Collections.Generic.List<QuestionBookmark>()
+        };
+        await context.Questions.AddAsync(question);
+        await context.SaveChangesAsync();
+
+        var bookmark = new QuestionBookmark { QuestionId = question.Id, UserId = bookmarker.Id };
+        await context.QuestionBookmarks.AddAsync(bookmark);
+        await context.SaveChangesAsync();
+
+        var svc = new QuestionsService(context);
+
+        // Case 1: Bookmarker logged in
+        var dtoBookmarker = svc.GetQuestionById(question.Id, bookmarker.Id);
+        Assert.True(dtoBookmarker.Bookmarked);
+
+        // Case 2: Non-bookmarker logged in
+        var dtoNonBookmarker = svc.GetQuestionById(question.Id, nonBookmarker.Id);
+        Assert.False(dtoNonBookmarker.Bookmarked);
+
+        // Case 3: No user logged in
+        var dtoNoUser = svc.GetQuestionById(question.Id, null);
+        Assert.False(dtoNoUser.Bookmarked);
+    }
+
+    [Fact]
     public async Task GetNewQuestionsAsync_ReturnsDtos_WithCorrectCurrentUserVote()
     {
         await using var context = CreateInMemoryContext();
@@ -168,6 +214,54 @@ public class QuestionsServiceTests
     }
 
     [Fact]
+    public async Task GetNewQuestionsAsync_ReturnsDtos_WithCorrectBookmarkedStatus()
+    {
+        await using var context = CreateInMemoryContext();
+        var author = new CrowdsageUser { Id = "author", UserName = "author" };
+        var bookmarker = new CrowdsageUser { Id = "bookmarker", UserName = "bookmarker" };
+        var nonBookmarker = new CrowdsageUser { Id = "nonBookmarker", UserName = "nonBookmarker" };
+        await context.Users.AddRangeAsync(author, bookmarker, nonBookmarker);
+
+        var q1 = new Question
+        {
+            Id = Guid.NewGuid(),
+            Title = "Q1",
+            Content = "C1",
+            CreatedAt = DateTimeOffset.UtcNow.AddMinutes(-10),
+            UpdatedAt = DateTimeOffset.UtcNow,
+            AuthorId = author.Id,
+            Author = author,
+            Tags = new System.Collections.Generic.List<string>(),
+            Answers = new System.Collections.Generic.List<Answer>(),
+            Votes = new System.Collections.Generic.List<QuestionVote>(),
+            Comments = new System.Collections.Generic.List<QuestionComment>(),
+            UserBookmarks = new System.Collections.Generic.List<QuestionBookmark>()
+        };
+        await context.Questions.AddAsync(q1);
+
+        var bookmark = new QuestionBookmark { QuestionId = q1.Id, UserId = bookmarker.Id };
+        await context.QuestionBookmarks.AddAsync(bookmark);
+        await context.SaveChangesAsync();
+
+        var svc = new QuestionsService(context);
+
+        // Case 1: Bookmarker logged in
+        var listBookmarker = await svc.GetNewQuestionsAsync(bookmarker.Id);
+        var dtoQ1_Bookmarker = listBookmarker.First(q => q.Id == q1.Id);
+        Assert.True(dtoQ1_Bookmarker.Bookmarked);
+
+        // Case 2: Non-bookmarker logged in
+        var listNonBookmarker = await svc.GetNewQuestionsAsync(nonBookmarker.Id);
+        var dtoQ1_NonBookmarker = listNonBookmarker.First(q => q.Id == q1.Id);
+        Assert.False(dtoQ1_NonBookmarker.Bookmarked);
+
+        // Case 3: No user logged in
+        var listNoUser = await svc.GetNewQuestionsAsync(null);
+        var dtoQ1_NoUser = listNoUser.First(q => q.Id == q1.Id);
+        Assert.False(dtoQ1_NoUser.Bookmarked);
+    }
+
+    [Fact]
     public async Task EditQuestion_NullPayload_ThrowsArgumentNullException()
     {
         await using var context = CreateInMemoryContext();
@@ -234,6 +328,44 @@ public class QuestionsServiceTests
 
         var exists = await context.Questions.AnyAsync(q => q.Id == question.Id);
         Assert.False(exists);
+    }
+
+    [Fact]
+    public async Task DeleteQuestion_RemovesAllAssociatedBookmarks()
+    {
+        await using var context = CreateInMemoryContext();
+        var user1 = new CrowdsageUser { Id = "bmDelQ1", UserName = "u1" };
+        var user2 = new CrowdsageUser { Id = "bmDelQ2", UserName = "u2" };
+        await context.Users.AddRangeAsync(user1, user2);
+
+        var question = new Question
+        {
+            Id = Guid.NewGuid(),
+            Title = "Q",
+            Content = "C",
+            CreatedAt = DateTimeOffset.UtcNow,
+            UpdatedAt = DateTimeOffset.UtcNow,
+            Tags = new System.Collections.Generic.List<string>(),
+            Answers = new System.Collections.Generic.List<Answer>(),
+            Votes = new System.Collections.Generic.List<QuestionVote>(),
+            Comments = new System.Collections.Generic.List<QuestionComment>(),
+            AuthorId = user1.Id,
+            Author = user1
+        };
+        await context.Questions.AddAsync(question);
+        await context.SaveChangesAsync();
+
+        // Add bookmarks from multiple users
+        var bm1 = new QuestionBookmark { QuestionId = question.Id, UserId = user1.Id };
+        var bm2 = new QuestionBookmark { QuestionId = question.Id, UserId = user2.Id };
+        await context.QuestionBookmarks.AddRangeAsync(bm1, bm2);
+        await context.SaveChangesAsync();
+
+        var svc = new QuestionsService(context);
+        await svc.DeleteQuestion(question.Id);
+
+        var bookmarks = await context.QuestionBookmarks.Where(b => b.QuestionId == question.Id).ToListAsync();
+        Assert.Empty(bookmarks);
     }
 
     [Fact]

@@ -17,4 +17,5 @@ public class Question
     public List<QuestionVote> Votes { get; set; }
     public CrowdsageUser Author { get; set; }
     public string AuthorId { get; set; }
+    public List<QuestionBookmark> UserBookmarks { get; set;}
 }

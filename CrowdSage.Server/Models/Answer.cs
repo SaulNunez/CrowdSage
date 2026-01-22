@@ -12,4 +12,5 @@ public class Answer
     public List<AnswerComment> Comments { get; set; }
     public CrowdsageUser Author { get; set; }
     public string AuthorId { get; set; }
+    public List<AnswerBookmark> UserBookmarks { get; set;}
 }

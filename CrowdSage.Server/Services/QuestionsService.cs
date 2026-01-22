@@ -17,7 +17,7 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
             Content = question.Content,
             CreatedAt = question.CreatedAt,
             UpdatedAt = question.UpdatedAt,
-            Bookmarked = false,
+            Bookmarked = question.UserBookmarks.Any(ub => ub.UserId == userId),
             Votes = question.Votes.Count(v => v.Vote == Models.Enums.VoteValue.Upvote),
             CurrentUserVote = question.Votes
                     .Where(v => v.UserId == userId)
@@ -45,7 +45,7 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
                 Content = q.Content,
                 CreatedAt = q.CreatedAt,
                 UpdatedAt = q.UpdatedAt,
-                Bookmarked = false,
+                Bookmarked = q.UserBookmarks.Any(ub => ub.UserId == userId),
                 Votes = q.Votes.Count(v => v.Vote == Models.Enums.VoteValue.Upvote),
                 CurrentUserVote = q.Votes
                     .Where(v => v.UserId == userId)
@@ -96,7 +96,7 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
             Content = questionEntity.Content,
             CreatedAt = questionEntity.CreatedAt,
             UpdatedAt = questionEntity.UpdatedAt,
-            Bookmarked = false,
+            Bookmarked = questionEntity.UserBookmarks.Any(ub => ub.UserId == userId),
             Votes = questionEntity.Votes.Count(v => v.Vote == Models.Enums.VoteValue.Upvote),
             CurrentUserVote = questionEntity.Votes
                     .Where(v => v.UserId == userId)
@@ -187,7 +187,7 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
                 Content = q.Content,
                 CreatedAt = q.CreatedAt,
                 UpdatedAt = q.UpdatedAt,
-                Bookmarked = true,
+                Bookmarked = q.UserBookmarks.Any(ub => ub.UserId == userId),
                 Votes = q.Votes.Count(v => v.Vote == Models.Enums.VoteValue.Upvote),
                 CurrentUserVote = q.Votes
                     .Where(v => v.UserId == userId)
