@@ -1,0 +1,4 @@
+{
+  "welcome": "¡Bienvenido a React y react-i18next!",
+  "description": "Este es un ejemplo de traducciones en español en un archivo json separado."
+}
