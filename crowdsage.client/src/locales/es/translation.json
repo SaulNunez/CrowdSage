@@ -1,4 +1,34 @@
 {
   "welcome": "¡Bienvenido a React y react-i18next!",
-  "description": "Este es un ejemplo de traducciones en español en un archivo json separado."
+  "description": "Este es un ejemplo de traducciones en español en un archivo json separado.",
+  "answerCard": {
+    "answeredBy": "Respondido por ",
+    "bookmarked": "Guardado",
+    "bookmark": "Guardar",
+    "comments": "Comentarios",
+    "addComment": "Añadir un comentario",
+    "upvoteError": "Ocurrió un error y no se pudo registrar el voto"
+  },
+  "commentForm": {
+    "placeholder": "Añadir un comentario...",
+    "submit": "Comentar"
+  },
+  "commentList": {
+    "empty": "Aún no hay comentarios."
+  },
+  "loading": "Cargando...",
+  "navBar": {
+    "searchPlaceholder": "Buscar preguntas...",
+    "newQuestion": "Nueva Pregunta",
+    "signIn": "Iniciar Sesión"
+  },
+  "questionCard": {
+    "askedBy": "Preguntado por ",
+    "bookmarkAria": "Guardar pregunta"
+  },
+  "serverError": {
+    "title": "Error del Servidor",
+    "message1": "Ocurrió un error inesperado al intentar obtener datos del servidor.",
+    "message2": "Por favor, inténtalo de nuevo más tarde o contacta con soporte si el problema persiste."
+  }
 }

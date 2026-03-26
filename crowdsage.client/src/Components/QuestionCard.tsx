@@ -1,7 +1,9 @@
 import { useNavigate } from "react-router";
+import { useTranslation } from "react-i18next";
 import type { Question } from "../types";
 
 export function QuestionCard({question} : {question: Question}) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   return (
   <article
@@ -26,7 +28,7 @@ export function QuestionCard({question} : {question: Question}) {
         className={`p-2 rounded-full border ${question.bookmarked
             ? "text-yellow-500 border-yellow-400"
             : "text-gray-500 border-gray-300 dark:border-gray-600"} hover:bg-gray-100 dark:hover:bg-gray-700`}
-        aria-label="Bookmark question"
+        aria-label={t('questionCard.bookmarkAria')}
       >
         {question.bookmarked ? "★" : "☆"}
       </button>
@@ -52,7 +54,7 @@ export function QuestionCard({question} : {question: Question}) {
     {/* Author + Date */}
     <div className="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 pt-3 border-t dark:border-gray-700">
       <div>
-        Asked by{" "}
+        {t('questionCard.askedBy')}{" "}
         <strong className="text-gray-800 dark:text-gray-200">
           {question.author.userName}
         </strong>

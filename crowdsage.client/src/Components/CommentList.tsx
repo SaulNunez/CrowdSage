@@ -1,7 +1,9 @@
 import type { BaseComment } from '../types';
+import { useTranslation } from 'react-i18next';
 
 export function CommentList({ comments = [] }: { comments: BaseComment[] }) {
-  if (!comments.length) return <div className="text-sm text-gray-500 mt-2">No comments yet.</div>;
+  const { t } = useTranslation();
+  if (!comments.length) return <div className="text-sm text-gray-500 mt-2">{t('commentList.empty')}</div>;
   return (
     <ul className="mt-2 space-y-2">
       {comments.map((c) => (

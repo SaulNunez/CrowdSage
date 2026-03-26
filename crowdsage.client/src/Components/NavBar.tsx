@@ -1,5 +1,6 @@
 import { Link } from "react-router";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 interface NavBarProps {
   isAuthenticated: boolean;
@@ -8,6 +9,7 @@ interface NavBarProps {
 
 export default function NavBar({ isAuthenticated, userName }: NavBarProps) {
   const [search, setSearch] = useState("");
+  const { t } = useTranslation();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,7 +28,7 @@ export default function NavBar({ isAuthenticated, userName }: NavBarProps) {
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search questions..."
+          placeholder={t('navBar.searchPlaceholder')}
           className="w-full"
         />
       </form>
@@ -34,7 +36,7 @@ export default function NavBar({ isAuthenticated, userName }: NavBarProps) {
       {/* Right section: Actions */}
       <div className="flex items-center gap-4">
         <Link to="/question/new">
-          <button className="rounded-2xl px-4 py-2">New Question</button>
+          <button className="rounded-2xl px-4 py-2">{t('navBar.newQuestion')}</button>
         </Link>
 
         {isAuthenticated ? (
@@ -50,7 +52,7 @@ export default function NavBar({ isAuthenticated, userName }: NavBarProps) {
             />)
         ) : (
           <Link to="/signin" className="text-gray-700 hover:underline">
-            Sign In
+            {t('navBar.signIn')}
           </Link>
         )}
       </div>

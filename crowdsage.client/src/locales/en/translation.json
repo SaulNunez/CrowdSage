@@ -1,4 +1,34 @@
 {
   "welcome": "Welcome to React and react-i18next!",
-  "description": "This is an example of english translations in a separate json file."
+  "description": "This is an example of english translations in a separate json file.",
+  "answerCard": {
+    "answeredBy": "Answered by ",
+    "bookmarked": "Bookmarked",
+    "bookmark": "Bookmark",
+    "comments": "Comments",
+    "addComment": "Add a comment",
+    "upvoteError": "An error occurred and upvote couldn't be recorded"
+  },
+  "commentForm": {
+    "placeholder": "Add a comment...",
+    "submit": "Comment"
+  },
+  "commentList": {
+    "empty": "No comments yet."
+  },
+  "loading": "Loading...",
+  "navBar": {
+    "searchPlaceholder": "Search questions...",
+    "newQuestion": "New Question",
+    "signIn": "Sign In"
+  },
+  "questionCard": {
+    "askedBy": "Asked by ",
+    "bookmarkAria": "Bookmark question"
+  },
+  "serverError": {
+    "title": "Server Error",
+    "message1": "An unexpected error occurred while trying to fetch data from the server.",
+    "message2": "Please try again later or contact support if the issue persists."
+  }
 }

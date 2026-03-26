@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { CommentList } from './CommentList';
 import { CommentForm } from './CommentForm';
 import ReactMarkdown from 'react-markdown';
@@ -13,6 +14,7 @@ interface AnswerCardProps {
 }
 
 export function AnswerCard({ answer, questionId }: AnswerCardProps) {
+  const { t } = useTranslation();
   const answerId = answer.id;
   const { data: answerComments, isLoading, error } = useGetCommentsForAnswerQuery({answerId, questionId});
   const [ addAnswerComment, { isLoading: addingComment } ] = useAddCommentForAnswerMutation();
@@ -32,7 +34,7 @@ export function AnswerCard({ answer, questionId }: AnswerCardProps) {
     try {
       await upvoteAnswer({ questionId, answerId, voteInput: 'Upvote' }).unwrap();
     } catch (error) {
-      alert("An error ocurred and upvote couldn't be recorded");
+      alert(t('answerCard.upvoteError'));
     }
   }
 
@@ -77,7 +79,7 @@ export function AnswerCard({ answer, questionId }: AnswerCardProps) {
         <div className="flex items-start justify-between gap-4">
           <div>
             <div className="text-sm text-gray-700">
-              Answered by <strong className="text-gray-900">{answer.author.userName}</strong>
+              {t('answerCard.answeredBy')}<strong className="text-gray-900">{answer.author.userName}</strong>
               <span className="text-gray-500"> • {answer.createdAt.toLocaleDateString()}</span>
             </div>
           </div>
@@ -89,7 +91,7 @@ export function AnswerCard({ answer, questionId }: AnswerCardProps) {
             {isBookmarkLoading ? (
               <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-gray-600"></div>
             ) : (
-              answer.bookmarked ? "Bookmarked" : "Bookmark"
+              answer.bookmarked ? t('answerCard.bookmarked') : t('answerCard.bookmark')
             )}
           </button>
         </div>
@@ -99,7 +101,7 @@ export function AnswerCard({ answer, questionId }: AnswerCardProps) {
         </div>
 
         <div className="mt-4 border-t pt-3">
-          <h4 className="text-sm font-medium">Comments</h4>
+          <h4 className="text-sm font-medium">{t('answerCard.comments')}</h4>
           <CommentList comments={answerComments!} />
           {showCommentForm ? (
             <CommentForm
@@ -114,7 +116,7 @@ export function AnswerCard({ answer, questionId }: AnswerCardProps) {
               onClick={() => setShowCommentForm(true)}
               className="mt-2 text-sm text-blue-600"
             >
-              Add a comment
+              {t('answerCard.addComment')}
             </button>
           )}
         </div>
