@@ -6,7 +6,7 @@ import { Loading } from "../Components/Loading";
 import { ServerError } from "../Components/ServerError";
 import ReactMarkdown from "react-markdown";
 import { useParams } from "react-router";
-import { useAddAnswerMutation, useAddQuestionCommentMutation, useBookmarkQuestionMutation, useGetAnswersForQuestionQuery, useGetCommentsForQuestionQuery, useGetQuestionByIdQuery, useRemoveBookmarkQuestionMutation, useUpvoteQuestionMutation } from "../common/reducers";
+import { useAddAnswerMutation, useAddQuestionCommentMutation, useBookmarkQuestionMutation, useGetAnswersForQuestionQuery, useGetCommentsForQuestionQuery, useGetQuestionByIdQuery, useRemoveBookmarkQuestionMutation, useUpvoteQuestionMutation } from "../store/reducers";
 
 function QuestionCommentSection({ questionId }: { questionId: string }) {
   const { data, isLoading, error} = useGetCommentsForQuestionQuery(questionId);

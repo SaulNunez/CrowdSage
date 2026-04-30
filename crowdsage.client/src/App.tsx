@@ -3,7 +3,7 @@ import './App.css';
 import { Loading } from './Components/Loading';
 import { ServerError } from './Components/ServerError';
 import { useNavigate } from 'react-router';
-import { useGetNewQuestionsQuery } from './common/reducers';
+import { useGetNewQuestionsQuery } from './store/reducers';
 import type { Question } from './types';
 import { QuestionCard } from './Components/QuestionCard';
 

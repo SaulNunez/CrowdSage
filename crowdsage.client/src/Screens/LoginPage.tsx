@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { useLoginMutation } from "../common/reducers";
+import { useLoginMutation } from "../store/reducers";
 import { useDispatch } from "react-redux";
-import { setCredentials } from "../common/authSlice";
+import { setCredentials } from "../store/authSlice";
 
 export default function Login() {
   const [username, setUsername] = useState<string>("");

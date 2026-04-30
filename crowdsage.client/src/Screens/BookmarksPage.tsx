@@ -1,6 +1,6 @@
 import { QuestionCard } from '../Components/QuestionCard';
 import { AnswerCard } from '../Components/AnswerCard';
-import { useGetBookmarkedAnswersQuery, useGetBookmarkedQuestionsQuery } from '../common/reducers';
+import { useGetBookmarkedAnswersQuery, useGetBookmarkedQuestionsQuery } from '../store/reducers';
 import { Loading } from '../Components/Loading';
 import { ServerError } from '../Components/ServerError';
 

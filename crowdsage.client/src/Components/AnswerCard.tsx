@@ -6,7 +6,7 @@ import ReactMarkdown from 'react-markdown';
 import type { Answer } from '../types';
 import { ServerError } from './ServerError';
 import { Loading } from './Loading';
-import { useAddCommentForAnswerMutation, useBookmarkAnswerMutation, useGetCommentsForAnswerQuery, useRemoveBookmarkAnswerMutation, useUpvoteAnswerMutation } from '../common/reducers';
+import { useAddCommentForAnswerMutation, useBookmarkAnswerMutation, useGetCommentsForAnswerQuery, useRemoveBookmarkAnswerMutation, useUpvoteAnswerMutation } from '../store/reducers';
 
 interface AnswerCardProps {
   answer: Answer;

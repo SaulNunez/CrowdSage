@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
-import { useAddQuestionMutation } from "../common/reducers";
+import { useAddQuestionMutation } from "../store/reducers";
 import MarkdownEditor from "../Shared/MarkdownEditor";
 
 export default function CreateQuestionPage() {

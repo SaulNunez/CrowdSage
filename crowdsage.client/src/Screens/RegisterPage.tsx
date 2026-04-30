@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { useRegisterUserMutation } from "../common/reducers";
+import { useRegisterUserMutation } from "../store/reducers";
 
 export default function Register() {
   const [username, setUsername] = useState<string>("");
