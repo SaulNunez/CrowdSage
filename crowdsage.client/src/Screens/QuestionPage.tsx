@@ -11,8 +11,6 @@ import { useAddAnswerMutation, useAddQuestionCommentMutation, useBookmarkQuestio
 function QuestionCommentSection({ questionId }: { questionId: string }) {
   const { data, isLoading, error} = useGetCommentsForQuestionQuery(questionId);
 
-  const [addComment, { isLoading: currentlyAddingComment }] = useAddQuestionCommentMutation();
-
   if (isLoading) return <Loading />
   if (error) return <ServerError />
 
@@ -25,7 +23,7 @@ function QuestionCommentSection({ questionId }: { questionId: string }) {
         <div className="text-sm text-gray-500 mt-2">No comments yet.</div>
       )}
 
-      <CommentForm onSubmit={(content) => addComment({data: {content}, questionId})} />
+      <CommentForm questionId={questionId} />
     </div>
   );
 }
