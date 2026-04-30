@@ -24,12 +24,6 @@ type EditQuestionCommentParams = {
     questionId: string;
 };
 
-interface ErrorDescriptionResponse {
-    code: number;
-    message: string;
-}
-
-type ErrorResponse = ErrorDescriptionResponse | void;
 
 export const questionsApi = createApi({
   reducerPath: 'questionsApi',
@@ -51,38 +45,38 @@ export const questionsApi = createApi({
             url: 'questions',
             method: 'POST',
             body: newQuestion,
-            providesTags: ['Question'],
-        })
+        }),
+        invalidatesTags: ['Question'],
     }),
     upvoteQuestion: build.mutation<void, UpvoteQuestionPayload>({
         query: ({questionId, voteInput}) => ({
             url: `questions/${questionId}/vote`,
             method: 'POST',
             body: { voteInput },
-            invalidatesTags: (_result: void, _error: ErrorResponse, {questionId}: UpvoteQuestionPayload) => [{ type: 'Question', id: questionId }],
         }),
+        invalidatesTags: (_result, _error, {questionId}) => [{ type: 'Question', id: questionId }],
     }),
     bookmarkQuestion: build.mutation<void, BookmarkQuestionPayload>({
         query: ({questionId}) => ({
             url: `questions/${questionId}/bookmark`,
             method: 'POST',
-            invalidatesTags: (_result: void, _error: ErrorResponse, {questionId}: BookmarkQuestionPayload) => [{ type: 'Question', id: questionId }],
         }),
+        invalidatesTags: (_result, _error, {questionId}) => [{ type: 'Question', id: questionId }],
     }),
     removeBookmarkQuestion: build.mutation<void, BookmarkQuestionPayload>({
         query: ({questionId}) => ({
             url: `questions/${questionId}/bookmark`,
             method: 'DELETE',
-            invalidatesTags: (_result: void, _error: ErrorResponse, {questionId}: BookmarkQuestionPayload) => [{ type: 'Question', id: questionId }],
         }),
+        invalidatesTags: (_result, _error, {questionId}) => [{ type: 'Question', id: questionId }],
     }),
     editQuestion: build.mutation<Question, {data: QuestionCreatePayload, questionId: string }>({
         query: ({data, questionId}) => ({
             url: `questions/${questionId}`,
             method: 'PUT',
             body: data,
-            invalidatesTag: ['Question']
-        })
+        }),
+        invalidatesTags: ['Question'],
     }),
     getQuestionById: build.query<Question, string>({
       query: (questionId) => `questions/${questionId}`,
@@ -111,7 +105,7 @@ export const questionsApi = createApi({
             method: 'PUT',
             body: data
         }),
-        invalidatesTags: (_result: QuestionComment | undefined, _error: ErrorResponse, {questionId}: EditQuestionCommentParams) => [{ type: 'QuestionComment', id: questionId }],
+        invalidatesTags: (_result, _error, {questionId}) => [{ type: 'QuestionComment', id: questionId }],
     }),
     getAnswersForQuestion: build.query<Answer[], string>({
         query: (questionId) => `question/${questionId}/answers`,
@@ -120,7 +114,7 @@ export const questionsApi = createApi({
             ...(result || []).map(({ id }) => ({ type: 'Answer' as const, id }) as const)
         ],
     }),
-    addAnswer: build.mutation<AnswerComment, {data: AnswerCreatePayload, questionId: string}>({
+    addAnswer: build.mutation<Answer, {data: AnswerCreatePayload, questionId: string}>({
         query: ({data, questionId}) => ({
             url: `api/questions/${questionId}/answers`,
             method: 'POST',
@@ -128,35 +122,35 @@ export const questionsApi = createApi({
         }),
         invalidatesTags: (result, _error, {questionId}) => result ? [{ type: 'Answer', id: `${questionId}#${result.id}` }] : [],
     }),
-    editAnswer: build.mutation<AnswerComment, CreateAnswerParams>({
+    editAnswer: build.mutation<Answer, CreateAnswerParams>({
         query: ({data, questionId, answerId}) => ({
             url: `api/questions/${questionId}/answers/${answerId}`,
             method: 'PUT',
             body: data,
         }),
-        invalidatesTags: (_result: AnswerComment | undefined, _error: ErrorResponse, {questionId, answerId}: CreateAnswerParams) => [{ type: 'AnswerComment', id: `${questionId}#${answerId}` }],
+        invalidatesTags: (_result, _error, {questionId, answerId}) => [{ type: 'Answer', id: `${questionId}#${answerId}` }],
     }),
     upvoteAnswer: build.mutation<void, UpvoteAnswerPayload>({
         query: ({answerId, questionId, voteInput}) => ({
             url: `api/questions/${questionId}/answers/${answerId}/vote`,
             method: 'POST',
             body: { voteInput },
-            invalidatesTags: (_result: void, _error: ErrorResponse, {questionId, answerId}: UpvoteAnswerPayload) => [{ type: 'Answer', id: `${questionId}#${answerId}` }],
         }),
+        invalidatesTags: (_result, _error, {questionId, answerId}) => [{ type: 'Answer', id: `${questionId}#${answerId}` }],
     }),
     bookmarkAnswer: build.mutation<void, BookmarkAnswerPayload>({
         query: ({answerId, questionId}) => ({
             url: `api/questions/${questionId}/answers/${answerId}/bookmark`,
             method: 'POST',
-            invalidatesTags: (_result: void, _error: ErrorResponse, {questionId, answerId}: BookmarkAnswerPayload) => [{ type: 'Answer', id: `${questionId}#${answerId}` }],
         }),
+        invalidatesTags: (_result, _error, {questionId, answerId}) => [{ type: 'Answer', id: `${questionId}#${answerId}` }],
     }),
     removeBookmarkAnswer: build.mutation<void, BookmarkAnswerPayload>({
         query: ({answerId, questionId}) => ({
             url: `api/questions/${questionId}/answers/${answerId}/bookmark`,
             method: 'DELETE',
-            invalidatesTags: (_result: void, _error: ErrorResponse, {questionId, answerId}: BookmarkAnswerPayload) => [{ type: 'Answer', id: `${questionId}#${answerId}` }],
         }),
+        invalidatesTags: (_result, _error, {questionId, answerId}) => [{ type: 'Answer', id: `${questionId}#${answerId}` }],
     }),
     getCommentsForAnswer: build.query<AnswerComment[], {answerId: string, questionId: string}>({
         query: ({answerId, questionId}) => `questions/${questionId}/answers/${answerId}/comments`,
@@ -179,7 +173,7 @@ export const questionsApi = createApi({
             method: 'PUT',
             body: data,
         }),
-        invalidatesTags: (_result: AnswerComment | undefined, _error: ErrorResponse, {answerId, answerCommentId}: any) => [{ type: 'AnswerComment', id: `${answerId}#${answerCommentId}` }],
+        invalidatesTags: (_result, _error, {answerId, answerCommentId}) => [{ type: 'AnswerComment', id: `${answerId}#${answerCommentId}` }],
     }),
     getBookmarkedQuestions: build.query<Question[], void>({
         query: () => `question/bookmark`,
