@@ -22,10 +22,10 @@ export default function CreateQuestionPage() {
     }
 
     return (
-        <form onSubmit={handleSubmit} className="w-full mx-auto p-6 bg-white rounded-lg shadow-md">
-            <h1 className="text-2xl font-bold mb-4">Create New Question</h1>
+        <form onSubmit={handleSubmit} className="w-full mx-auto p-6 bg-white dark:bg-gray-800 rounded-lg shadow-md">
+            <h1 className="text-2xl font-bold mb-4 dark:text-white">Create New Question</h1>
             <div className="mb-4">
-                <label className="block text-gray-700 font-semibold mb-2" htmlFor="title">
+                <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2" htmlFor="title">
                     Title
                 </label>
                 <input
@@ -38,7 +38,7 @@ export default function CreateQuestionPage() {
                 />
             </div>
             <div className="mb-4">
-                <label className="block text-gray-700 font-semibold mb-2" htmlFor="content">
+                <label className="block text-gray-700 dark:text-gray-300 font-semibold mb-2" htmlFor="content">
                     Content
                 </label>
                 <MarkdownEditor
@@ -56,14 +56,14 @@ export default function CreateQuestionPage() {
                 <button
                     type="submit"
                     disabled={isLoading}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition"
                 >
                     {isLoading ? "Posting..." : "Post Question"}
                 </button>
                 <button
                     type="button"
                     onClick={() => navigate(-1)}
-                    className="px-4 py-2 border rounded-lg hover:bg-gray-100 transition"
+                    className="px-4 py-2 border rounded-lg hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700 transition"
                 >
                     Cancel
                 </button>
