@@ -22,7 +22,7 @@ export default function CreateQuestionPage() {
     }
 
     return (
-        <form onSubmit={handleSubmit} className="max-w-3xl mx-auto p-6 bg-white rounded-lg shadow-md">
+        <form onSubmit={handleSubmit} className="w-full mx-auto p-6 bg-white rounded-lg shadow-md">
             <h1 className="text-2xl font-bold mb-4">Create New Question</h1>
             <div className="mb-4">
                 <label className="block text-gray-700 font-semibold mb-2" htmlFor="title">

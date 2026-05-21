@@ -125,7 +125,7 @@ export default function QuestionPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-4xl mx-auto">
+      <div className="w-full mx-auto">
         <header className="mb-6">
           <h1 className="text-3xl font-bold text-gray-900">{question?.title}</h1>
           <div className="mt-2 flex items-center text-sm text-gray-600 gap-3">

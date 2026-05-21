@@ -44,7 +44,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors">
-      <div className="max-w-5xl mx-auto px-6 py-10">
+      <div className="w-full mx-auto px-6 py-10">
         {/* Header */}
         <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
           <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
