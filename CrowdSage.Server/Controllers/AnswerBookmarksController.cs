@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CrowdSage.Server.Controllers;
 
-[Route("api/question/bookmark")]
+[Route("api/answer/bookmark")]
 [ApiController]
 public class AnswerBookmarksController(IAnswersService answersService, ILogger<AnswerBookmarksController> logger) : ControllerBase
 {
