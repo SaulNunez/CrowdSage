@@ -249,19 +249,19 @@ export default function MarkdownEditor({ value = "", onChange, uploadImage, clas
   // toolbar
   return (
     <div className={`markdown-editor ${className}`}>
-      <div className="bg-gray-50 border rounded-t p-2 flex gap-2 items-center">
+      <div className="bg-gray-50 dark:bg-slate-800 border dark:border-slate-700 rounded-t p-2 flex gap-2 items-center text-gray-800 dark:text-gray-200">
         <div className="flex gap-1">
-          <button onClick={onBold} className="px-2 py-1 rounded hover:bg-gray-100">
+          <button onClick={onBold} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
               <path strokeLinejoin="round" d="M6.75 3.744h-.753v8.25h7.125a4.125 4.125 0 0 0 0-8.25H6.75Zm0 0v.38m0 16.122h6.747a4.5 4.5 0 0 0 0-9.001h-7.5v9h.753Zm0 0v-.37m0-15.751h6a3.75 3.75 0 1 1 0 7.5h-6m0-7.5v7.5m0 0v8.25m0-8.25h6.375a4.125 4.125 0 0 1 0 8.25H6.75m.747-15.38h4.875a3.375 3.375 0 0 1 0 6.75H7.497v-6.75Zm0 7.5h5.25a3.75 3.75 0 0 1 0 7.5h-5.25v-7.5Z" />
             </svg>
           </button>
-          <button onClick={onItalic} className="px-2 py-1 rounded hover:bg-gray-100">
+          <button onClick={onItalic} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
               <path strokeLinecap="round" strokeLinejoin="round" d="M5.248 20.246H9.05m0 0h3.696m-3.696 0 5.893-16.502m0 0h-3.697m3.697 0h3.803" />
             </svg>
           </button>
-          <button onClick={onInlineCode} className="px-2 py-1 rounded hover:bg-gray-100">`code`</button>
+          <button onClick={onInlineCode} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">`code`</button>
         </div>
 
         <div className="ml-2">
@@ -269,7 +269,7 @@ export default function MarkdownEditor({ value = "", onChange, uploadImage, clas
           <select
             onChange={(e) => onHeading(Number(e.target.value))}
             defaultValue={0}
-            className="p-1 rounded border"
+            className="p-1 rounded border dark:border-slate-700 bg-white dark:bg-slate-900 focus:outline-none"
           >
             <option value={0}>Select</option>
             <option value={1}>H1</option>
@@ -282,12 +282,12 @@ export default function MarkdownEditor({ value = "", onChange, uploadImage, clas
         </div>
 
         <div className="flex gap-1 ml-2">
-          <button onClick={onLinkInsert} className="px-2 py-1 rounded hover:bg-gray-100">
+          <button onClick={onLinkInsert} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
             <path strokeLinecap="round" strokeLinejoin="round" d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13" />
           </svg>
           </button>
-          <button onClick={onImageInsert} className="px-2 py-1 rounded hover:bg-gray-100">
+          <button onClick={onImageInsert} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
             <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
           </svg>
@@ -295,17 +295,17 @@ export default function MarkdownEditor({ value = "", onChange, uploadImage, clas
         </div>
 
         <div className="flex gap-1 ml-2">
-          <button onClick={onOrderedList} className="px-2 py-1 rounded hover:bg-gray-100">
+          <button onClick={onOrderedList} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
             <path strokeLinecap="round" strokeLinejoin="round" d="M8.242 5.992h12m-12 6.003H20.24m-12 5.999h12M4.117 7.495v-3.75H2.99m1.125 3.75H2.99m1.125 0H5.24m-1.92 2.577a1.125 1.125 0 1 1 1.591 1.59l-1.83 1.83h2.16M2.99 15.745h1.125a1.125 1.125 0 0 1 0 2.25H3.74m0-.002h.375a1.125 1.125 0 0 1 0 2.25H2.99" />
           </svg>
           </button>
-          <button onClick={onUnorderedList} className="px-2 py-1 rounded hover:bg-gray-100">
+          <button onClick={onUnorderedList} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
               <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
             </svg>
           </button>
-          <button onClick={onTaskList} className="px-2 py-1 rounded hover:bg-gray-100">
+          <button onClick={onTaskList} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
             </svg>
@@ -313,8 +313,8 @@ export default function MarkdownEditor({ value = "", onChange, uploadImage, clas
         </div>
 
         <div className="ml-auto">
-          <button onClick={onBlockquote} className="px-2 py-1 rounded hover:bg-gray-100">Quote</button>
-          <button onClick={onCodeBlock} className="px-2 py-1 rounded hover:bg-gray-100">Code Block</button>
+          <button onClick={onBlockquote} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">Quote</button>
+          <button onClick={onCodeBlock} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">Code Block</button>
         </div>
       </div>
 
@@ -322,20 +322,20 @@ export default function MarkdownEditor({ value = "", onChange, uploadImage, clas
         ref={textareaRef}
         value={text}
         onChange={(e) => updateText(e.target.value)}
-        className="w-full min-h-[240px] p-4 border rounded-b font-mono text-sm focus:outline-none"
+        className="w-full min-h-[240px] p-4 border dark:border-slate-700 rounded-b font-mono text-sm focus:outline-none bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
         {...textInputProps}
       />
 
       {/* Link Modal */}
       {showLinkModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/40">
-          <div className="bg-white p-4 rounded shadow w-96">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/60 z-50">
+          <div className="bg-white dark:bg-slate-800 p-4 rounded shadow-lg w-96 text-gray-900 dark:text-gray-100">
             <h3 className="font-bold mb-2">Insert Link</h3>
-            <input value={linkTitle} onChange={(e) => setLinkTitle(e.target.value)} placeholder="Title" className="w-full p-2 border rounded mb-2" />
-            <input value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} placeholder="https://..." className="w-full p-2 border rounded mb-2" />
+            <input value={linkTitle} onChange={(e) => setLinkTitle(e.target.value)} placeholder="Title" className="w-full p-2 border dark:border-slate-600 rounded mb-2 bg-white dark:bg-slate-900 focus:outline-none focus:border-blue-500" />
+            <input value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} placeholder="https://..." className="w-full p-2 border dark:border-slate-600 rounded mb-2 bg-white dark:bg-slate-900 focus:outline-none focus:border-blue-500" />
             <div className="flex justify-end gap-2">
-              <button onClick={() => setShowLinkModal(false)} className="px-3 py-1 rounded">Cancel</button>
-              <button onClick={confirmLink} className="px-3 py-1 rounded bg-blue-600 text-white">Insert</button>
+              <button onClick={() => setShowLinkModal(false)} className="px-3 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">Cancel</button>
+              <button onClick={confirmLink} className="px-3 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white transition-colors">Insert</button>
             </div>
           </div>
         </div>
@@ -343,18 +343,18 @@ export default function MarkdownEditor({ value = "", onChange, uploadImage, clas
 
       {/* Image Modal */}
       {showImageModal && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/40">
-          <div className="bg-white p-4 rounded shadow w-96">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/60 z-50">
+          <div className="bg-white dark:bg-slate-800 p-4 rounded shadow-lg w-96 text-gray-900 dark:text-gray-100">
             <h3 className="font-bold mb-2">Insert Image</h3>
-            <input value={imageTitle} onChange={(e) => setImageTitle(e.target.value)} placeholder="Alt text / title" className="w-full p-2 border rounded mb-2" />
-            <input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://..." className="w-full p-2 border rounded mb-2" />
+            <input value={imageTitle} onChange={(e) => setImageTitle(e.target.value)} placeholder="Alt text / title" className="w-full p-2 border dark:border-slate-600 rounded mb-2 bg-white dark:bg-slate-900 focus:outline-none focus:border-blue-500" />
+            <input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://..." className="w-full p-2 border dark:border-slate-600 rounded mb-2 bg-white dark:bg-slate-900 focus:outline-none focus:border-blue-500" />
             <div className="mb-2">
-              <label className="block text-sm mb-1">Or upload a file</label>
-              <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files ? e.target.files[0] : null)} />
+              <label className="block text-sm mb-1 text-gray-600 dark:text-gray-400">Or upload a file</label>
+              <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files ? e.target.files[0] : null)} className="text-sm" />
             </div>
             <div className="flex justify-end gap-2">
-              <button onClick={() => setShowImageModal(false)} className="px-3 py-1 rounded">Cancel</button>
-              <button onClick={confirmImage} disabled={uploading} className="px-3 py-1 rounded bg-blue-600 text-white">{uploading ? 'Uploading...' : 'Insert'}</button>
+              <button onClick={() => setShowImageModal(false)} className="px-3 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">Cancel</button>
+              <button onClick={confirmImage} disabled={uploading} className="px-3 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white transition-colors disabled:opacity-50">{uploading ? 'Uploading...' : 'Insert'}</button>
             </div>
           </div>
         </div>
