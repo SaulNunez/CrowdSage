@@ -1,9 +1,10 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace CrowdSage.Server.Models;
 
-public class CrowdsageDbContext(DbContextOptions<CrowdsageDbContext> options) : IdentityDbContext<CrowdsageUser>(options)
+public class CrowdsageDbContext(DbContextOptions<CrowdsageDbContext> options) : IdentityDbContext<CrowdsageUser>(options), IDataProtectionKeyContext
 {
     public DbSet<Question> Questions { get; set; }
     public DbSet<Answer> Answers { get; set; }
@@ -14,4 +15,6 @@ public class CrowdsageDbContext(DbContextOptions<CrowdsageDbContext> options) : 
     public DbSet<AnswerVote> AnswerVotes { get; set; }
     public DbSet<QuestionBookmark> QuestionBookmarks { get; set; }
     public DbSet<AnswerBookmark> AnswerBookmarks { get; set; }
+
+    public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
 }

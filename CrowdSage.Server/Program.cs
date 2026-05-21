@@ -2,6 +2,7 @@ using CrowdSage.Server.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using CrowdSage.Server.Services;
+using Microsoft.AspNetCore.DataProtection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,8 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<CrowdsageDbContext>(options =>
 {
-    //options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found."));
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found."));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found."));
+    //options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found."));
     options.UseOpenIddict();
 });
 
@@ -18,7 +19,8 @@ builder.Services.AddIdentity<CrowdsageUser, IdentityRole>()
             .AddEntityFrameworkStores<CrowdsageDbContext>()
             .AddDefaultTokenProviders();
 
-
+builder.Services.AddDataProtection()
+    .PersistKeysToDbContext<CrowdsageDbContext>();
 
 builder.Services.Configure<IdentityOptions>(options =>
 {

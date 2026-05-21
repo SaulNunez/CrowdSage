@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CommentList } from './CommentList';
-import { CommentForm } from './CommentForm';
 import ReactMarkdown from 'react-markdown';
 import type { Answer } from '../types';
 import { ServerError } from './ServerError';
 import { Loading } from './Loading';
-import { useAddCommentForAnswerMutation, useBookmarkAnswerMutation, useGetCommentsForAnswerQuery, useRemoveBookmarkAnswerMutation, useUpvoteAnswerMutation } from '../store/reducers';
+import { useBookmarkAnswerMutation, useGetCommentsForAnswerQuery, useRemoveBookmarkAnswerMutation, useUpvoteAnswerMutation } from '../store/reducers';
+import { AnswerCommentForm } from './AnswerCommentForm';
 
 interface AnswerCardProps {
   answer: Answer;
@@ -17,14 +17,9 @@ export function AnswerCard({ answer, questionId }: AnswerCardProps) {
   const { t } = useTranslation();
   const answerId = answer.id;
   const { data: answerComments, isLoading, error } = useGetCommentsForAnswerQuery({answerId, questionId});
-  const [ addAnswerComment, { isLoading: addingComment } ] = useAddCommentForAnswerMutation();
   const [upvoteAnswer, { isLoading: isUpvoting }] = useUpvoteAnswerMutation();
   const [bookmarkAnswer, { isLoading: isBookmarking }] = useBookmarkAnswerMutation();
   const [removeBookmarkAnswer, { isLoading: isRemovingBookmark }] = useRemoveBookmarkAnswerMutation();
-
-  const createComment = (content: string) => {
-    addAnswerComment({ data: { content }, questionId, answerId });
-  };
 
   const [showCommentForm, setShowCommentForm] = useState<boolean>(false);
   
@@ -34,7 +29,7 @@ export function AnswerCard({ answer, questionId }: AnswerCardProps) {
     try {
       await upvoteAnswer({ questionId, answerId, voteInput: 'Upvote' }).unwrap();
     } catch (error) {
-      alert(t('answerCard.upvoteError'));
+      console.error("Failed to upvote answer", error);
     }
   }
 
@@ -104,15 +99,12 @@ export function AnswerCard({ answer, questionId }: AnswerCardProps) {
           <h4 className="text-sm font-medium">{t('answerCard.comments')}</h4>
           <CommentList comments={answerComments!} />
           {showCommentForm ? (
-            <CommentForm
-              onSubmit={(text) => {
-                createComment(text);
-                setShowCommentForm(false);
-              }}
+            <AnswerCommentForm
+              questionId={questionId}
+              answerId={answerId}
             />
           ) : (
             <button
-              disabled={addingComment}
               onClick={() => setShowCommentForm(true)}
               className="mt-2 text-sm text-blue-600"
             >

@@ -2,9 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import './App.css';
 import { Loading } from './Components/Loading';
 import { ServerError } from './Components/ServerError';
-import { useNavigate } from 'react-router';
 import { useGetNewQuestionsQuery } from './store/reducers';
-import type { Question } from './types';
 import { QuestionCard } from './Components/QuestionCard';
 
 
@@ -12,7 +10,6 @@ import { QuestionCard } from './Components/QuestionCard';
 export default function App() {
   const [search, setSearch] = useState<string>("");
   const [selectedTag, setSelectedTag] = useState<string>("All");
-  const navigate = useNavigate();
   const [darkMode, setDarkMode] = useState<boolean>(false);
   const [page] = useState(1);
 
@@ -39,7 +36,7 @@ export default function App() {
         q.content.toLowerCase().includes(search.toLowerCase());
       const matchesTag = selectedTag === "All" || q.tags.includes(selectedTag);
       return matchesSearch && matchesTag;
-    });
+    }) ?? [];
   }, [questions, search, selectedTag]);
 
   if (isLoading) return <Loading />
@@ -86,7 +83,7 @@ export default function App() {
         {/* Question List */}
         <div className="space-y-6">
           {filteredQuestions.map((q) => (
-            <QuestionCard question={q} id={q.id} />
+            <QuestionCard question={q} key={q.id} />
           ))}
 
           {filteredQuestions.length === 0 && (

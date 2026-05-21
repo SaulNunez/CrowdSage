@@ -6,13 +6,13 @@ import { Loading } from "../Components/Loading";
 import { ServerError } from "../Components/ServerError";
 import ReactMarkdown from "react-markdown";
 import { useParams } from "react-router";
-import { useAddAnswerMutation, useAddQuestionCommentMutation, useBookmarkQuestionMutation, useGetAnswersForQuestionQuery, useGetCommentsForQuestionQuery, useGetQuestionByIdQuery, useRemoveBookmarkQuestionMutation, useUpvoteQuestionMutation } from "../store/reducers";
+import { useAddAnswerMutation, useBookmarkQuestionMutation, useGetAnswersForQuestionQuery, useGetCommentsForQuestionQuery, useGetQuestionByIdQuery, useRemoveBookmarkQuestionMutation, useUpvoteQuestionMutation } from "../store/reducers";
 
 function QuestionCommentSection({ questionId }: { questionId: string }) {
   const { data, isLoading, error} = useGetCommentsForQuestionQuery(questionId);
 
-  if (isLoading) return <Loading />
-  if (error) return <ServerError />
+  if (isLoading) return (<Loading />);
+  if (error) return (<ServerError />);
 
   return (
     <div className="mt-6 border-t pt-4">
@@ -52,11 +52,11 @@ function AnswerSection({ questionId }: { questionId: string }) {
 
   return (
     <section className="mt-8">
-      {<h2 className="text-2xl font-semibold">{data.length} Answers</h2>}
+      {<h2 className="text-2xl font-semibold">{data?.length} Answers</h2>}
 
       <div className="mt-4 space-y-4">
         {
-          data.map((a) => (
+          data?.map((a) => (
             <AnswerCard
               key={a.id}
               answer={a}
@@ -100,7 +100,7 @@ export default function QuestionPage() {
   async function toggleBookmarkQuestion() {
     if (!questionId) return;
     try {
-      if (question.bookmarked) {
+      if (question?.bookmarked) {
         await removeBookmarkQuestion({ questionId }).unwrap();
       } else {
         await bookmarkQuestion({ questionId }).unwrap();
@@ -115,7 +115,7 @@ export default function QuestionPage() {
       try {
         await upvoteQuestion({ questionId, voteInput: 'Upvote' }).unwrap();
       } catch (error) {
-        alert("An error ocurred and upvote couldn't be recorded");
+        console.error("Failed to upvote question", error);
       }
     }
   }
@@ -127,11 +127,11 @@ export default function QuestionPage() {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-4xl mx-auto">
         <header className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">{question.title}</h1>
+          <h1 className="text-3xl font-bold text-gray-900">{question?.title}</h1>
           <div className="mt-2 flex items-center text-sm text-gray-600 gap-3">
-            <span>asked by <strong className="text-gray-800">{question.author.userName}</strong></span>
+            <span>asked by <strong className="text-gray-800">{question?.author.userName}</strong></span>
             <span>•</span>
-            <span>{question.createdAt.toDateString()}</span>
+            <span>{question?.createdAt.toDateString()}</span>
             <div className="ml-auto flex gap-2">
               <button className="px-3 py-1 rounded-md border text-sm">Edit</button>
               <button className="px-3 py-1 rounded-md bg-red-50 text-red-700 text-sm">Follow</button>
@@ -143,7 +143,7 @@ export default function QuestionPage() {
                 {isBookmarkLoading ? (
                   <div className="animate-spin rounded-full h-4 w-4 border-t-2 border-gray-600"></div>
                 ) : (
-                  question.bookmarked ? "Bookmarked" : "Bookmark"
+                  question?.bookmarked ? "Bookmarked" : "Bookmark"
                 )}
               </button>
             </div>
@@ -157,7 +157,7 @@ export default function QuestionPage() {
                 onClick={handleUpvote}
                 disabled={isUpvoting}
                 className={`w-10 h-10 flex items-center justify-center rounded border text-sm transition-colors ${
-                  question.currentUserVote === 'Upvote'
+                  question?.currentUserVote === 'Upvote'
                     ? "bg-blue-100 text-blue-600 border-blue-200 hover:bg-blue-200"
                     : "bg-white text-gray-500 border-gray-200 hover:bg-gray-50"
                 }`}
@@ -169,15 +169,15 @@ export default function QuestionPage() {
                   "▲"
                 )}
               </button>
-              <div className="mt-2 text-sm font-medium">{question.votes}</div>
+              <div className="mt-2 text-sm font-medium">{question?.votes}</div>
             </div>
             <div className="flex-1">
               <section className="prose max-w-none">
-                <ReactMarkdown>{question.content}</ReactMarkdown>
+                <ReactMarkdown>{question?.content}</ReactMarkdown>
               </section>
 
               <div className="mt-4 flex flex-wrap gap-2">
-                {question.tags.map((t) => (
+                {question?.tags.map((t) => (
                   <span key={t} className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-sm">
                     {t}
                   </span>

@@ -13,6 +13,10 @@ export interface Answer extends IDateable {
     currentUserVote: VoteValue | null
 }
 
+export interface AnswerWithQuestionId extends Answer {
+    questionId: string,
+}
+
 export interface BaseComment extends IDateable {
     id: string,
     content: string,

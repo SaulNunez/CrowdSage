@@ -13,3 +13,8 @@ public record AnswerDto
     public required DateTimeOffset UpdatedAt { get; init; }
     public required VoteValue? CurrentUserVote { get; init; }
 }
+
+public record AnswerWithQuestionId : AnswerDto
+{
+    public required Guid QuestionId { get; init; }
+}

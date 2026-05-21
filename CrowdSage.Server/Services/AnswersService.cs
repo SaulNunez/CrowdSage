@@ -153,7 +153,7 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
         await dbContext.SaveChangesAsync();
     }
 
-    public async Task<List<AnswerDto>> GetBookmarkedAnswers(string userId)
+    public async Task<List<AnswerWithQuestionId>> GetBookmarkedAnswers(string userId)
     {
         var bookmarkedAnswers = await dbContext.AnswerBookmarks
             .Where(b => b.UserId == userId)
@@ -161,7 +161,7 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
             .OrderByDescending(a => a.CreatedAt)
             .ToListAsync();
 
-        return bookmarkedAnswers.Select(a => new AnswerDto
+        return bookmarkedAnswers.Select(a => new AnswerWithQuestionId
         {
             Id = a.Id,
             CreatedAt = a.CreatedAt,
@@ -172,6 +172,7 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
                     .Where(v => v.UserId == userId)
                     .Select(v => v.Vote)
                     .FirstOrDefault(),
+            QuestionId = a.QuestionId,
             Author = new AuthorDto
             {
                 Id = a.Author.Id,
@@ -193,5 +194,5 @@ public interface IAnswersService
     void BookmarkAnswer(Guid answerId, string userId);
     void RemoveBookmarkFromAnswer(Guid answerId, string userId);
     Task VoteOnAnswer(Guid answerId, string userId, VoteInput vote);
-    Task<List<AnswerDto>> GetBookmarkedAnswers(string userId);
+    Task<List<AnswerWithQuestionId>> GetBookmarkedAnswers(string userId);
 }

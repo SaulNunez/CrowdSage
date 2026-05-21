@@ -32,7 +32,7 @@ export default function Login() {
       dispatch(setCredentials({ user: username, token: userData.access_token }));
       navigate('/');
     } catch (err) {
-      alert('Login failed. Please check your credentials.');
+      console.error("Login failed",err);
     }
   };
 

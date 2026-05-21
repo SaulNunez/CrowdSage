@@ -19,7 +19,7 @@ export default function BookmarksScreen() {
                 {questions && (
                     <div className="grid gap-4">
                         {questions.map((q) => (
-                            <QuestionCard question={q} />
+                            <QuestionCard question={q} key={q.id}/>
                         ))}
                     </div>
                 )}
@@ -35,8 +35,7 @@ export default function BookmarksScreen() {
                             <AnswerCard
                                 key={a.id}
                                 answer={a}
-                                onUpvote={() => console.log('upvote', a.id)}
-                                onBookmark={() => console.log('bookmark toggle', a.id)}
+                                questionId={a.questionId}
                             />
                         ))}
                     </div>

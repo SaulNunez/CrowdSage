@@ -50,9 +50,9 @@ export default function MarkdownEditor({ value = "", onChange, uploadImage, clas
     const start = ta.selectionStart;
     const end = ta.selectionEnd;
     const full = text;
-    const before = full.slice(0, start);
-    const selected = full.slice(start, end);
-    const after = full.slice(end);
+    //const before = full.slice(0, start);
+    //const selected = full.slice(start, end);
+    //const after = full.slice(end);
 
     // figure lines that are affected: lines that intersect selection
     const selStartLine = full.slice(0, start).split("\n");
@@ -117,9 +117,9 @@ export default function MarkdownEditor({ value = "", onChange, uploadImage, clas
     // apply to each line that intersects selection; if no selection, use current line
     const ta = textareaRef.current;
     if (!ta) return;
-    const start = ta.selectionStart;
-    const end = ta.selectionEnd;
-    const lines = text.split("\n");
+    //const start = ta.selectionStart;
+    //const end = ta.selectionEnd;
+    //const lines = text.split("\n");
 
     applyToSelectedLines((line) => {
       const trimmed = line.replace(/^#{1,6}\s*/, "");
@@ -144,13 +144,13 @@ export default function MarkdownEditor({ value = "", onChange, uploadImage, clas
   function onOrderedList() {
     const ta = textareaRef.current;
     if (!ta) return;
-    const start = ta.selectionStart;
-    const end = ta.selectionEnd;
-    const full = text;
+    //const start = ta.selectionStart;
+    //const end = ta.selectionEnd;
+    //const full = text;
 
-    const selStartLine = full.slice(0, start).split("\n");
-    const startLineIndex = selStartLine.length - 1;
-    const between = full.slice(start, end).split("\n");
+    //const selStartLine = full.slice(0, start).split("\n");
+    //const startLineIndex = selStartLine.length - 1;
+    //const between = full.slice(start, end).split("\n");
 
     applyToSelectedLines((line, idx) => {
       // if already ordered, leave
@@ -215,7 +215,7 @@ export default function MarkdownEditor({ value = "", onChange, uploadImage, clas
     const ta = textareaRef.current;
     if (!ta) return;
     const start = ta.selectionStart;
-    const end = ta.selectionEnd;
+    //const end = ta.selectionEnd;
 
     const lineStart = getLineStart(start);
     const lineEnd = text.indexOf("\n", start) === -1 ? text.length : text.indexOf("\n", start);
@@ -231,7 +231,7 @@ export default function MarkdownEditor({ value = "", onChange, uploadImage, clas
       insertPos = start + 1; // after the new line
     } else if (hasTextInLine) {
       // move existing text down one line
-      const rest = text.slice(lineStart, text.length);
+      //const rest = text.slice(lineStart, text.length);
       // find where this line ends
       const thisLineEnd = lineEnd;
       newText = text.slice(0, thisLineEnd) + "\n" + text.slice(thisLineEnd);

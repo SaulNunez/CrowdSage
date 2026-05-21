@@ -14,7 +14,7 @@ export default function CreateQuestionPage() {
         if (!title.trim() || !content.trim()) return;
 
         try {
-            await addQuestion({ title, content, tags: [] }).unwrap();
+            await addQuestion({ title, content}).unwrap();
             navigate("/");
         } catch (error) {
             console.error("Failed to post question:", error);

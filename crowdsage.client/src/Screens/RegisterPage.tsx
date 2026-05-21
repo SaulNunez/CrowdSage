@@ -35,7 +35,7 @@ export default function Register() {
       await registerUser({ userName: username, email, password }).unwrap();
       navigate("/auth/login");
     } catch (error) {
-      alert("Registration failed. Please try again.");
+      console.error("Registration failed. Please try again.", error);
     }
   };
 

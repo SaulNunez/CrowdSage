@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import type { QuestionCreatePayload, Answer, AnswerComment, Question, QuestionComment, QuestionCommentCreatePayload, AnswerCommentCreatePayload, AnswerCreatePayload, UpvoteQuestionPayload, UpvoteAnswerPayload, BookmarkQuestionPayload, BookmarkAnswerPayload, RegisterPayload } from '../types';
+import type { QuestionCreatePayload, Answer, AnswerComment, Question, QuestionComment, QuestionCommentCreatePayload, AnswerCommentCreatePayload, AnswerCreatePayload, UpvoteQuestionPayload, UpvoteAnswerPayload, BookmarkQuestionPayload, BookmarkAnswerPayload, RegisterPayload, AnswerWithQuestionId } from '../types';
 import type { RootState } from '../store';
 
 export interface LoginRequest {
@@ -178,7 +178,7 @@ export const questionsApi = createApi({
     getBookmarkedQuestions: build.query<Question[], void>({
         query: () => `question/bookmark`,
     }),
-    getBookmarkedAnswers: build.query<Answer[], void>({
+    getBookmarkedAnswers: build.query<AnswerWithQuestionId[], void>({
         query: () => `answer/bookmark`,
     }),
     registerUser: build.mutation<void, RegisterPayload>({
