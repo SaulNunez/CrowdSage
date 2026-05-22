@@ -72,17 +72,23 @@ export default function MarkdownEditor({ value = "", onChange, uploadImage, clas
 
     const newText = newLines.join("\n");
 
-    // compute new selection range: we want to include transformed lines
-    // find new selection start: index of startLineIndex-th line start
-    let newStart = 0;
-    for (let i = 0; i < startLineIndex; i++) newStart += newLines[i].length + 1;
-    // new end: include the number of lines we've transformed
-    let newEnd = newStart;
-    for (let i = 0; i < between.length; i++) newEnd += newLines[startLineIndex + i].length + 1;
-    // if last line, remove trailing +1
-    if (between.length > 0) newEnd -= 1;
-
-    updateText(newText, { start: newStart, end: newEnd });
+    if (between.length === 1) {
+      // For a single-line selection (or collapsed cursor), just shift the selection
+      // by the change in the line's length so the user can keep typing or keep their word selected.
+      const oldLineLength = allLines[startLineIndex].length;
+      const newLineLength = newLines[startLineIndex].length;
+      const diff = newLineLength - oldLineLength;
+      updateText(newText, { start: start + diff, end: end + diff });
+    } else {
+      // For multi-line selections, compute new selection range to encompass all transformed lines
+      let newStart = 0;
+      for (let i = 0; i < startLineIndex; i++) newStart += newLines[i].length + 1;
+      let newEnd = newStart;
+      for (let i = 0; i < between.length; i++) newEnd += newLines[startLineIndex + i].length + 1;
+      if (between.length > 0) newEnd -= 1;
+  
+      updateText(newText, { start: newStart, end: newEnd });
+    }
   }
 
   function insertWrapping(open: string, close: string) {
@@ -246,22 +252,81 @@ export default function MarkdownEditor({ value = "", onChange, uploadImage, clas
     updateText(newText, { start: caret, end: caret });
   }
 
+  function onTableInsert() {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    const start = ta.selectionStart;
+    
+    // Markdown table template
+    const tableTemplate = "\n| Column 1 | Column 2 |\n| -------- | -------- |\n| Text     | Text     |\n";
+    
+    const newText = text.slice(0, start) + tableTemplate + text.slice(ta.selectionEnd);
+    const caret = start + tableTemplate.length;
+    updateText(newText, { start: caret, end: caret });
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      const ta = e.currentTarget;
+      const start = ta.selectionStart;
+      
+      const lineStart = text.lastIndexOf("\n", start - 1) + 1;
+      const currentLineToCursor = text.slice(lineStart, start);
+      
+      const taskMatch = currentLineToCursor.match(/^(\s*)(-\s\[[ xX]\]\s+)(.*)$/);
+      const olMatch = currentLineToCursor.match(/^(\s*)(\d+)(\.\s+)(.*)$/);
+      const ulMatch = currentLineToCursor.match(/^(\s*)([-*+]\s+)(.*)$/);
+      
+      let insertion = "";
+      let isEmpty = false;
+
+      if (taskMatch) {
+        isEmpty = taskMatch[3].trim().length === 0;
+        insertion = isEmpty ? "" : `\n${taskMatch[1]}- [ ] `;
+      } else if (olMatch) {
+        isEmpty = olMatch[4].trim().length === 0;
+        const nextNum = parseInt(olMatch[2], 10) + 1;
+        insertion = isEmpty ? "" : `\n${olMatch[1]}${nextNum}${olMatch[3]}`;
+      } else if (ulMatch) {
+        isEmpty = ulMatch[3].trim().length === 0;
+        insertion = isEmpty ? "" : `\n${ulMatch[1]}${ulMatch[2]}`;
+      }
+
+      if (insertion) {
+        e.preventDefault();
+        const newText = text.slice(0, start) + insertion + text.slice(ta.selectionEnd);
+        const caret = start + insertion.length;
+        updateText(newText, { start: caret, end: caret });
+      } else if (isEmpty && (taskMatch || olMatch || ulMatch)) {
+        e.preventDefault();
+        // Delete the empty marker
+        const newText = text.slice(0, lineStart) + text.slice(ta.selectionEnd);
+        const caret = lineStart;
+        updateText(newText, { start: caret, end: caret });
+      }
+    }
+    
+    if (textInputProps.onKeyDown) {
+      textInputProps.onKeyDown(e);
+    }
+  }
+
   // toolbar
   return (
     <div className={`markdown-editor ${className}`}>
       <div className="bg-gray-50 dark:bg-slate-800 border dark:border-slate-700 rounded-t p-2 flex gap-2 items-center text-gray-800 dark:text-gray-200">
         <div className="flex gap-1">
-          <button onClick={onBold} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">
+          <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={onBold} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
               <path strokeLinejoin="round" d="M6.75 3.744h-.753v8.25h7.125a4.125 4.125 0 0 0 0-8.25H6.75Zm0 0v.38m0 16.122h6.747a4.5 4.5 0 0 0 0-9.001h-7.5v9h.753Zm0 0v-.37m0-15.751h6a3.75 3.75 0 1 1 0 7.5h-6m0-7.5v7.5m0 0v8.25m0-8.25h6.375a4.125 4.125 0 0 1 0 8.25H6.75m.747-15.38h4.875a3.375 3.375 0 0 1 0 6.75H7.497v-6.75Zm0 7.5h5.25a3.75 3.75 0 0 1 0 7.5h-5.25v-7.5Z" />
             </svg>
           </button>
-          <button onClick={onItalic} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">
+          <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={onItalic} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
               <path strokeLinecap="round" strokeLinejoin="round" d="M5.248 20.246H9.05m0 0h3.696m-3.696 0 5.893-16.502m0 0h-3.697m3.697 0h3.803" />
             </svg>
           </button>
-          <button onClick={onInlineCode} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">`code`</button>
+          <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={onInlineCode} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">`code`</button>
         </div>
 
         <div className="ml-2">
@@ -282,12 +347,12 @@ export default function MarkdownEditor({ value = "", onChange, uploadImage, clas
         </div>
 
         <div className="flex gap-1 ml-2">
-          <button onClick={onLinkInsert} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">
+          <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={onLinkInsert} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
             <path strokeLinecap="round" strokeLinejoin="round" d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13" />
           </svg>
           </button>
-          <button onClick={onImageInsert} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">
+          <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={onImageInsert} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
             <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
           </svg>
@@ -295,35 +360,41 @@ export default function MarkdownEditor({ value = "", onChange, uploadImage, clas
         </div>
 
         <div className="flex gap-1 ml-2">
-          <button onClick={onOrderedList} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">
+          <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={onOrderedList} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
             <path strokeLinecap="round" strokeLinejoin="round" d="M8.242 5.992h12m-12 6.003H20.24m-12 5.999h12M4.117 7.495v-3.75H2.99m1.125 3.75H2.99m1.125 0H5.24m-1.92 2.577a1.125 1.125 0 1 1 1.591 1.59l-1.83 1.83h2.16M2.99 15.745h1.125a1.125 1.125 0 0 1 0 2.25H3.74m0-.002h.375a1.125 1.125 0 0 1 0 2.25H2.99" />
           </svg>
           </button>
-          <button onClick={onUnorderedList} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">
+          <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={onUnorderedList} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
               <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 6.75h12M8.25 12h12m-12 5.25h12M3.75 6.75h.007v.008H3.75V6.75Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0ZM3.75 12h.007v.008H3.75V12Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm-.375 5.25h.007v.008H3.75v-.008Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
             </svg>
           </button>
-          <button onClick={onTaskList} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">
+          <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={onTaskList} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
             </svg>
           </button>
         </div>
 
-        <div className="ml-auto">
-          <button onClick={onBlockquote} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">Quote</button>
-          <button onClick={onCodeBlock} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">Code Block</button>
+        <div className="ml-auto flex gap-1">
+          <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={onTableInsert} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700" title="Insert Table">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0 1 12 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125M20.625 12c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5M12 14.625v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 14.625c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m0 1.5v-1.5m0 0c0-.621.504-1.125 1.125-1.125m0 0h7.5" />
+            </svg>
+          </button>
+          <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={onBlockquote} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700" title="Quote">Quote</button>
+          <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={onCodeBlock} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700" title="Code Block">Code Block</button>
         </div>
       </div>
 
       <textarea
         ref={textareaRef}
+        {...textInputProps}
         value={text}
         onChange={(e) => updateText(e.target.value)}
+        onKeyDown={handleKeyDown}
         className="w-full min-h-[240px] p-4 border dark:border-slate-700 rounded-b font-mono text-sm focus:outline-none bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
-        {...textInputProps}
       />
 
       {/* Link Modal */}
