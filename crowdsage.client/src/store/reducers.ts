@@ -25,10 +25,19 @@ type EditQuestionCommentParams = {
 };
 
 
+// Every controller in this app is routed under `/api`, and the env var already
+// ends in `/api`, so endpoint paths below must NOT repeat the prefix.
+const apiBaseUrl: string = import.meta.env.VITE_CROWDSAGE_BACKEND_URL;
+
+// The Identity register action and the OpenIddict token endpoint are mapped at
+// the server root instead, so they are built as absolute URLs, which
+// fetchBaseQuery passes through without prepending `baseUrl`.
+const serverRootUrl = apiBaseUrl.replace(/\/api\/?$/, '');
+
 export const questionsApi = createApi({
   reducerPath: 'questionsApi',
   baseQuery: fetchBaseQuery({ 
-    baseUrl: import.meta.env.VITE_CROWDSAGE_BACKEND_URL,
+    baseUrl: apiBaseUrl,
     prepareHeaders: (headers, { getState }) => {
         const state = getState() as RootState;
         const token = state.auth?.token;
@@ -116,7 +125,7 @@ export const questionsApi = createApi({
     }),
     addAnswer: build.mutation<Answer, {data: AnswerCreatePayload, questionId: string}>({
         query: ({data, questionId}) => ({
-            url: `api/questions/${questionId}/answers`,
+            url: `question/${questionId}/answers`,
             method: 'POST',
             body: data
         }),
@@ -124,7 +133,7 @@ export const questionsApi = createApi({
     }),
     editAnswer: build.mutation<Answer, CreateAnswerParams>({
         query: ({data, questionId, answerId}) => ({
-            url: `api/questions/${questionId}/answers/${answerId}`,
+            url: `question/${questionId}/answers/${answerId}`,
             method: 'PUT',
             body: data,
         }),
@@ -132,7 +141,7 @@ export const questionsApi = createApi({
     }),
     upvoteAnswer: build.mutation<void, UpvoteAnswerPayload>({
         query: ({answerId, questionId, voteInput}) => ({
-            url: `api/questions/${questionId}/answers/${answerId}/vote`,
+            url: `question/${questionId}/answers/${answerId}/vote`,
             method: 'POST',
             body: { voteInput },
         }),
@@ -140,14 +149,14 @@ export const questionsApi = createApi({
     }),
     bookmarkAnswer: build.mutation<void, BookmarkAnswerPayload>({
         query: ({answerId, questionId}) => ({
-            url: `api/questions/${questionId}/answers/${answerId}/bookmark`,
+            url: `question/${questionId}/answers/${answerId}/bookmark`,
             method: 'POST',
         }),
         invalidatesTags: (_result, _error, {questionId, answerId}) => [{ type: 'Answer', id: `${questionId}#${answerId}` }],
     }),
     removeBookmarkAnswer: build.mutation<void, BookmarkAnswerPayload>({
         query: ({answerId, questionId}) => ({
-            url: `api/questions/${questionId}/answers/${answerId}/bookmark`,
+            url: `question/${questionId}/answers/${answerId}/bookmark`,
             method: 'DELETE',
         }),
         invalidatesTags: (_result, _error, {questionId, answerId}) => [{ type: 'Answer', id: `${questionId}#${answerId}` }],
@@ -161,7 +170,7 @@ export const questionsApi = createApi({
     }),
     addCommentForAnswer: build.mutation<AnswerComment, {data: AnswerCommentCreatePayload, questionId: string, answerId: string}>({
         query: ({data, questionId, answerId}) => ({
-            url: `api/questions/${questionId}/answers/${answerId}/comments`,
+            url: `questions/${questionId}/answers/${answerId}/comments`,
             method: 'POST',
             body: data
         }),
@@ -169,7 +178,7 @@ export const questionsApi = createApi({
     }),
     editCommentForAnswer: build.mutation<AnswerComment, {data: AnswerCommentCreatePayload, questionId: string, answerId: string, answerCommentId: string}>({
         query: ({data, questionId, answerId, answerCommentId}) => ({
-            url: `api/questions/${questionId}/answers/${answerId}/comments/${answerCommentId}`,
+            url: `questions/${questionId}/answers/${answerId}/comments/${answerCommentId}`,
             method: 'PUT',
             body: data,
         }),
@@ -183,14 +192,14 @@ export const questionsApi = createApi({
     }),
     registerUser: build.mutation<void, RegisterPayload>({
         query: (data) => ({
-            url: `api/account/register`,
+            url: `${serverRootUrl}/register`,
             method: 'POST',
             body: data
         }),
     }),
     login: build.mutation<LoginResponse, LoginRequest>({
         query: (credentials) => ({
-            url: 'connect/token',
+            url: `${serverRootUrl}/connect/token`,
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             body: new URLSearchParams({
