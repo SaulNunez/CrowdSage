@@ -27,7 +27,7 @@ type EditQuestionCommentParams = {
 
 // Every controller in this app is routed under `/api`, and the env var already
 // ends in `/api`, so endpoint paths below must NOT repeat the prefix.
-const apiBaseUrl: string = import.meta.env.VITE_CROWDSAGE_BACKEND_URL;
+const apiBaseUrl: string = import.meta.env.VITE_CROWDSAGE_BACKEND_URL ?? '/api';
 
 // The Identity register action and the OpenIddict token endpoint are mapped at
 // the server root instead, so they are built as absolute URLs, which
