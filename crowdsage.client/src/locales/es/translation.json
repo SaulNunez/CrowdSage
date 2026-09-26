@@ -20,7 +20,8 @@
   "navBar": {
     "searchPlaceholder": "Buscar preguntas...",
     "newQuestion": "Nueva Pregunta",
-    "signIn": "Iniciar Sesión"
+    "signIn": "Iniciar Sesión",
+    "profile": "Perfil"
   },
   "questionCard": {
     "askedBy": "Preguntado por ",
@@ -30,5 +31,26 @@
     "title": "Error del Servidor",
     "message1": "Ocurrió un error inesperado al intentar obtener datos del servidor.",
     "message2": "Por favor, inténtalo de nuevo más tarde o contacta con soporte si el problema persiste."
+  },
+  "profilePage": {
+    "questionsTab": "Preguntas",
+    "answersTab": "Respuestas",
+    "commentsTab": "Comentarios",
+    "questionCount_one": "{{count}} pregunta",
+    "questionCount_other": "{{count}} preguntas",
+    "answerCount_one": "{{count}} respuesta",
+    "answerCount_other": "{{count}} respuestas",
+    "commentCount_one": "{{count}} comentario",
+    "commentCount_other": "{{count}} comentarios",
+    "votes_one": "{{count}} voto",
+    "votes_other": "{{count}} votos",
+    "noQuestions": "Aún no hay preguntas.",
+    "noAnswers": "Aún no hay respuestas.",
+    "noComments": "Aún no hay comentarios.",
+    "on": "En",
+    "onAnswerTo": "En una respuesta a",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "page": "Página {{page}}"
   }
 }

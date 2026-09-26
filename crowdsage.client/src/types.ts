@@ -89,3 +89,48 @@ export interface RegisterPayload {
     email: string,
     password: string
 }
+
+export interface UserProfile {
+    id: string,
+    userName: string,
+    urlPhoto: string | null,
+    questionCount: number,
+    answerCount: number,
+    commentCount: number,
+}
+
+// Dates on the profile summaries are left as the ISO strings the server sends.
+export interface UserQuestionSummary {
+    id: string,
+    title: string,
+    votes: number,
+    answerCount: number,
+    createdAt: string,
+    updatedAt: string,
+}
+
+export interface UserAnswerSummary {
+    id: string,
+    questionId: string,
+    questionTitle: string,
+    content: string,
+    votes: number,
+    createdAt: string,
+    updatedAt: string,
+}
+
+export interface UserCommentSummary {
+    id: string,
+    content: string,
+    questionId: string,
+    questionTitle: string,
+    answerId: string | null,
+    createdAt: string,
+    updatedAt: string,
+}
+
+export interface UserActivityPageParams {
+    userId: string,
+    page: number,
+    take: number,
+}

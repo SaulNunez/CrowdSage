@@ -111,6 +111,7 @@ builder.Services.AddScoped<IQuestionsService, QuestionsService>();
 builder.Services.AddScoped<IAnswerCommentService, AnswerCommentService>();
 builder.Services.AddScoped<IAnswersService, AnswersService>();
 builder.Services.AddScoped<IQuestionCommentService, QuestionCommentService>();
+builder.Services.AddScoped<IUserProfileService, UserProfileService>();
 
 builder.Logging.AddConsole();
 

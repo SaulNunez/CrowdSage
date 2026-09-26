@@ -610,4 +610,57 @@ public class QuestionsServiceTests
         Assert.True(list.First().Bookmarked);
         Assert.NotNull(list.First().Author);
     }
+
+    private static System.Collections.Generic.List<Question> AddPagingQuestions(CrowdsageDbContext context, CrowdsageUser author, int count)
+    {
+        var baseTime = new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero);
+        var questions = Enumerable.Range(0, count).Select(i => new Question
+        {
+            Id = Guid.NewGuid(),
+            Title = $"q{i}",
+            Content = $"c{i}",
+            CreatedAt = baseTime.AddMinutes(i),
+            UpdatedAt = baseTime.AddMinutes(i),
+            AuthorId = author.Id,
+            Author = author,
+            Tags = new System.Collections.Generic.List<string>(),
+            Answers = new System.Collections.Generic.List<Answer>(),
+            Votes = new System.Collections.Generic.List<QuestionVote>(),
+            Comments = new System.Collections.Generic.List<QuestionComment>()
+        }).ToList();
+        context.Questions.AddRange(questions);
+        return questions;
+    }
+
+    [Fact]
+    public async Task GetNewQuestionsAsync_SecondPage_ReturnsNextSliceNewestFirst()
+    {
+        await using var context = CreateInMemoryContext();
+        var author = new CrowdsageUser { Id = "pageAuthor", UserName = "pageAuthor" };
+        await context.Users.AddAsync(author);
+        var questions = AddPagingQuestions(context, author, 5);
+        await context.SaveChangesAsync();
+
+        var svc = new QuestionsService(context);
+        var page = await svc.GetNewQuestionsAsync(null, take: 2, offset: 2);
+
+        Assert.Equal(new[] { questions[2].Id, questions[1].Id }, page.Select(q => q.Id));
+    }
+
+    [Fact]
+    public async Task GetBookmarkedQuestions_SecondPage_ReturnsNextSliceNewestFirst()
+    {
+        await using var context = CreateInMemoryContext();
+        var user = new CrowdsageUser { Id = "pageBookmarker", UserName = "pageBookmarker" };
+        await context.Users.AddAsync(user);
+        var questions = AddPagingQuestions(context, user, 5);
+        await context.QuestionBookmarks.AddRangeAsync(
+            questions.Select(q => new QuestionBookmark { QuestionId = q.Id, UserId = user.Id }));
+        await context.SaveChangesAsync();
+
+        var svc = new QuestionsService(context);
+        var page = await svc.GetBookmarkedQuestions(user.Id, take: 2, offset: 2);
+
+        Assert.Equal(new[] { questions[2].Id, questions[1].Id }, page.Select(q => q.Id));
+    }
 }
