@@ -52,5 +52,22 @@
     "previous": "Previous",
     "next": "Next",
     "page": "Page {{page}}"
+  },
+  "markdownEditor": {
+    "insertLink": "Insert Link",
+    "linkTitle": "Title",
+    "insertImage": "Insert Image",
+    "altText": "Alt text / title",
+    "orUpload": "Or upload a file",
+    "cancel": "Cancel",
+    "insert": "Insert",
+    "uploading": "Uploading...",
+    "uploadingPlaceholder": "Uploading {{name}}…",
+    "uploadingCount_one": "Uploading {{count}} image…",
+    "uploadingCount_other": "Uploading {{count}} images…",
+    "pasteHint": "Paste or drag and drop images to upload them.",
+    "unsupportedType": "{{name}} is not a supported image. Use PNG, JPEG, GIF or WebP.",
+    "tooLarge": "{{name}} is larger than {{maxMb}} MB.",
+    "uploadFailed": "Couldn't upload {{name}}. Please try again."
   }
 }

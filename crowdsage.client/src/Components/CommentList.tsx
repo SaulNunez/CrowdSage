@@ -1,5 +1,6 @@
 import type { BaseComment } from '../types';
 import { useTranslation } from 'react-i18next';
+import MarkdownContent from '../Shared/MarkdownContent';
 
 export function CommentList({ comments = [] }: { comments: BaseComment[] }) {
   const { t } = useTranslation();
@@ -9,9 +10,9 @@ export function CommentList({ comments = [] }: { comments: BaseComment[] }) {
       {comments.map((c) => (
         <li key={c.id} className="flex items-start gap-3 text-sm">
           <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-700">{c.author.userName[0]?.toUpperCase()}</div>
-          <div>
+          <div className="min-w-0 flex-1">
             <div className="text-gray-800 font-medium">{c.author.userName}</div>
-            <div className="text-gray-600">{c.content}</div>
+            <div className="text-gray-600"><MarkdownContent>{c.content}</MarkdownContent></div>
           </div>
         </li>
       ))}

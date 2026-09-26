@@ -8,6 +8,8 @@ services:
     environment:
       ConnectionStrings__DefaultConnection: "Host=postgres;Database=${DATABASE_NAME};Username=postgres;Password=${DATABASE_PASSWORD}"
       ConnectionStrings__RedisCacheConnection: redis
+    volumes:
+      - crowdsage_media:/app/App_Data/media
     networks:
       - backend
   postgres:
@@ -25,3 +27,4 @@ networks:
 
 volumes:
   crowdsage_db:
+  crowdsage_media:

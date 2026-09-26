@@ -2,11 +2,14 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router";
 import { useAddQuestionMutation } from "../store/reducers";
 import MarkdownEditor from "../Shared/MarkdownEditor";
+import { useImageUpload } from "../Shared/useImageUpload";
 
 export default function CreateQuestionPage() {
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
     const [addQuestion, { isLoading }] = useAddQuestionMutation();
+    const uploadImage = useImageUpload();
+    const [uploadingImages, setUploadingImages] = useState(false);
     const navigate = useNavigate();
 
     async function handleSubmit(e: React.FormEvent) {
@@ -44,6 +47,8 @@ export default function CreateQuestionPage() {
                 <MarkdownEditor
                     value={content}
                     onChange={(val) => setContent(val)}
+                    uploadImage={uploadImage}
+                    onUploadingChange={setUploadingImages}
                     textInputProps={{
                         id: "content",
                         rows: 10,
@@ -55,7 +60,7 @@ export default function CreateQuestionPage() {
             <div className="flex gap-4">
                 <button
                     type="submit"
-                    disabled={isLoading}
+                    disabled={isLoading || uploadingImages}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 transition"
                 >
                     {isLoading ? "Posting..." : "Post Question"}

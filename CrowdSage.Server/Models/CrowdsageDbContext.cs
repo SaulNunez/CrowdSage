@@ -15,6 +15,7 @@ public class CrowdsageDbContext(DbContextOptions<CrowdsageDbContext> options) : 
     public DbSet<AnswerVote> AnswerVotes { get; set; }
     public DbSet<QuestionBookmark> QuestionBookmarks { get; set; }
     public DbSet<AnswerBookmark> AnswerBookmarks { get; set; }
+    public DbSet<MediaAsset> MediaAssets { get; set; }
 
     public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
 }

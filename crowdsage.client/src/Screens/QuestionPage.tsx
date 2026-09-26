@@ -4,7 +4,9 @@ import { CommentList } from "../Components/CommentList";
 import { CommentForm } from "../Components/CommentForm";
 import { Loading } from "../Components/Loading";
 import { ServerError } from "../Components/ServerError";
-import ReactMarkdown from "react-markdown";
+import MarkdownContent from "../Shared/MarkdownContent";
+import MarkdownEditor from "../Shared/MarkdownEditor";
+import { useImageUpload } from "../Shared/useImageUpload";
 import { useParams } from "react-router";
 import { useAddAnswerMutation, useBookmarkQuestionMutation, useGetAnswersForQuestionQuery, useGetCommentsForQuestionQuery, useGetQuestionByIdQuery, useRemoveBookmarkQuestionMutation, useUpvoteQuestionMutation } from "../store/reducers";
 
@@ -33,6 +35,8 @@ function AnswerSection({ questionId }: { questionId: string }) {
 
   // UI state
   const [newAnswerText, setNewAnswerText] = useState("");
+  const [uploadingImages, setUploadingImages] = useState(false);
+  const uploadImage = useImageUpload();
 
   const [createAnswer, { isLoading: addingAnswer}] = useAddAnswerMutation();
 
@@ -67,15 +71,15 @@ function AnswerSection({ questionId }: { questionId: string }) {
 
       <div className="mt-8 bg-white rounded-lg shadow-sm p-6">
         <h3 className="text-lg font-medium mb-2">Your Answer</h3>
-        <textarea
+        <MarkdownEditor
           value={newAnswerText}
-          onChange={(e) => setNewAnswerText(e.target.value)}
-          rows={5}
-          className="w-full border rounded p-3 focus:outline-none focus:ring"
-          placeholder="Write your answer with markdown support..."
+          onChange={setNewAnswerText}
+          uploadImage={uploadImage}
+          onUploadingChange={setUploadingImages}
+          textInputProps={{ placeholder: "Write your answer with markdown support..." }}
         />
         <div className="mt-3 flex gap-2">
-          <button onClick={addAnswer} disabled={addingAnswer} className="px-4 py-2 bg-blue-600 text-white rounded">
+          <button onClick={addAnswer} disabled={addingAnswer || uploadingImages} className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50">
             Post Your Answer
           </button>
           <button onClick={() => setNewAnswerText("")} className="px-4 py-2 border rounded">
@@ -173,7 +177,7 @@ export default function QuestionPage() {
             </div>
             <div className="flex-1">
               <section className="prose max-w-none">
-                <ReactMarkdown>{question?.content}</ReactMarkdown>
+                <MarkdownContent>{question?.content}</MarkdownContent>
               </section>
 
               <div className="mt-4 flex flex-wrap gap-2">

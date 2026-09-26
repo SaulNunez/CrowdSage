@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CommentList } from './CommentList';
-import ReactMarkdown from 'react-markdown';
+import MarkdownContent from '../Shared/MarkdownContent';
 import type { Answer } from '../types';
 import { ServerError } from './ServerError';
 import { Loading } from './Loading';
@@ -92,7 +92,7 @@ export function AnswerCard({ answer, questionId }: AnswerCardProps) {
         </div>
 
         <div className="mt-3 prose max-w-none">
-          <ReactMarkdown>{answer.content}</ReactMarkdown>
+          <MarkdownContent>{answer.content}</MarkdownContent>
         </div>
 
         <div className="mt-4 border-t pt-3">
