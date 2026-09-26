@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using CrowdSage.Server.Services;
 using Microsoft.AspNetCore.DataProtection;
+using OpenIddict.Validation.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -66,16 +67,25 @@ builder.Services.AddOpenIddict()
         // Enable the password flow.
         options.AllowPasswordFlow();
 
-        // Accept anonymous clients (i.e clients that don't send a client_id).
-        //options.AcceptAnonymousClients();
+        // Accept anonymous clients (i.e clients that don't send a client_id). The SPA
+        // never sends one and no client application is registered, so without this
+        // every password-grant request fails with ID2029.
+        options.AcceptAnonymousClients();
 
         // Register the signing and encryption credentials.
         options.AddDevelopmentEncryptionCertificate()
                .AddDevelopmentSigningCertificate();
 
         // Register the ASP.NET Core host and configure the ASP.NET Core-specific options.
-        options.UseAspNetCore()
+        var aspNetCore = options.UseAspNetCore()
                .EnableTokenEndpointPassthrough();
+
+        // The Docker dev container only listens on plain HTTP (8080), where OpenIddict
+        // would otherwise reject every token request with ID2083.
+        if (builder.Environment.IsDevelopment())
+        {
+            aspNetCore.DisableTransportSecurityRequirement();
+        }
     })
 
     // Register the OpenIddict validation components.
@@ -87,6 +97,14 @@ builder.Services.AddOpenIddict()
         // Register the ASP.NET Core host.
         options.UseAspNetCore();
     });
+
+// AddIdentity makes its cookie the default scheme, so a bare [Authorize] would never
+// look at the bearer token. Authenticate and challenge with OpenIddict validation instead.
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
+});
 
 // Services
 builder.Services.AddScoped<IQuestionsService, QuestionsService>();

@@ -59,7 +59,11 @@ public class AuthorizationController
                 roleType: Claims.Role);
 
             // Add the claims that will be persisted in the tokens.
-            identity.SetClaim(Claims.Subject, await userManager.GetUserIdAsync(user))
+            var userId = await userManager.GetUserIdAsync(user);
+            identity.SetClaim(Claims.Subject, userId)
+                    // Controllers read the user id from NameIdentifier, which OpenIddict
+                    // validation does not map from "sub", so it is issued explicitly.
+                    .SetClaim(ClaimTypes.NameIdentifier, userId)
                     .SetClaim(Claims.Email, await userManager.GetEmailAsync(user))
                     .SetClaim(Claims.Name, await userManager.GetUserNameAsync(user))
                     .SetClaim(Claims.PreferredUsername, await userManager.GetUserNameAsync(user));
