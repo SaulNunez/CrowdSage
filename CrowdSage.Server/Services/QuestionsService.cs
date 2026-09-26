@@ -16,7 +16,9 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
             .Select(q => new QuestionDto
             {
                 Id = q.Id,
+                Title = q.Title,
                 Content = q.Content,
+                Tags = q.Tags,
                 CreatedAt = q.CreatedAt,
                 UpdatedAt = q.UpdatedAt,
                 Bookmarked = q.UserBookmarks.Any(ub => ub.UserId == userId),
@@ -45,7 +47,9 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
         return questions.Select(q => new QuestionDto
             {
                 Id = q.Id,
+                Title = q.Title,
                 Content = q.Content,
+                Tags = q.Tags,
                 CreatedAt = q.CreatedAt,
                 UpdatedAt = q.UpdatedAt,
                 Bookmarked = q.UserBookmarks.Any(ub => ub.UserId == userId),
@@ -101,7 +105,9 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
         return new QuestionDto
         {
             Id = questionEntity.Id,
+            Title = questionEntity.Title,
             Content = questionEntity.Content,
+            Tags = questionEntity.Tags,
             CreatedAt = questionEntity.CreatedAt,
             UpdatedAt = questionEntity.UpdatedAt,
             Bookmarked = questionEntity.UserBookmarks.Any(ub => ub.UserId == userId),
@@ -192,7 +198,9 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
             .Select(q => new QuestionDto
             {
                 Id = q.Id,
+                Title = q.Title,
                 Content = q.Content,
+                Tags = q.Tags,
                 CreatedAt = q.CreatedAt,
                 UpdatedAt = q.UpdatedAt,
                 Bookmarked = q.UserBookmarks.Any(ub => ub.UserId == userId),

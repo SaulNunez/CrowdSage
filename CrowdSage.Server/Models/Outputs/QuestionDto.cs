@@ -5,7 +5,9 @@ namespace CrowdSage.Server.Models.Outputs;
 public record QuestionDto
 {
     public required Guid Id { get; init; }
+    public required string Title { get; init; }
     public required string Content { get; init; }
+    public required List<string> Tags { get; init; }
     public required int Votes { get; init; }
     public required bool Bookmarked { get; init; }
     public required AuthorDto Author { get; init; }

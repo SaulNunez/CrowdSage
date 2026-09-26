@@ -41,7 +41,10 @@ public class QuestionsServiceTests
         var dto = await svc.AddQuestionAsync(payload, user.Id);
 
         Assert.NotNull(dto);
+        Assert.Equal(payload.Title, dto.Title);
         Assert.Equal(payload.Content, dto.Content);
+        Assert.NotNull(dto.Tags);
+        Assert.Empty(dto.Tags);
         Assert.NotNull(dto.Author);
         Assert.Equal(user.Id, dto.Author.Id);
         Assert.Equal(1, dto.Votes);
@@ -93,7 +96,7 @@ public class QuestionsServiceTests
             {
                 Id = questionId, Title = "T", Content = "C",
                 CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow,
-                AuthorId = "author", Tags = [],
+                AuthorId = "author", Tags = ["csharp", "efcore"],
                 Votes = [new QuestionVote { UserId = "author", Vote = Models.Enums.VoteValue.Upvote }],
                 UserBookmarks = [new QuestionBookmark { UserId = "author" }]
             });
@@ -103,6 +106,8 @@ public class QuestionsServiceTests
         await using var context = new CrowdsageDbContext(options);
         var dto = new QuestionsService(context).GetQuestionById(questionId, "author");
 
+        Assert.Equal("T", dto.Title);
+        Assert.Equal(["csharp", "efcore"], dto.Tags);
         Assert.Equal("authorName", dto.Author.UserName);
         Assert.Equal(1, dto.Votes);
         Assert.Equal(Models.Enums.VoteValue.Upvote, dto.CurrentUserVote);
@@ -122,7 +127,7 @@ public class QuestionsServiceTests
             {
                 Id = Guid.NewGuid(), Title = "T", Content = "C",
                 CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow,
-                AuthorId = "author", Tags = [],
+                AuthorId = "author", Tags = ["react"],
                 Votes = [new QuestionVote { UserId = "author", Vote = Models.Enums.VoteValue.Upvote }],
                 UserBookmarks = [new QuestionBookmark { UserId = "author" }]
             });
@@ -132,6 +137,8 @@ public class QuestionsServiceTests
         await using var context = new CrowdsageDbContext(options);
         var dto = Assert.Single(await new QuestionsService(context).GetBookmarkedQuestions("author"));
 
+        Assert.Equal("T", dto.Title);
+        Assert.Equal(["react"], dto.Tags);
         Assert.Equal("authorName", dto.Author.UserName);
         Assert.Equal(1, dto.Votes);
         Assert.True(dto.Bookmarked);
@@ -225,6 +232,31 @@ public class QuestionsServiceTests
         // Case 3: No user logged in
         var dtoNoUser = svc.GetQuestionById(question.Id, null);
         Assert.False(dtoNoUser.Bookmarked);
+    }
+
+    [Fact]
+    public async Task GetNewQuestionsAsync_FreshContext_MapsTitleAndTags()
+    {
+        var options = new DbContextOptionsBuilder<CrowdsageDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        await using (var seedContext = new CrowdsageDbContext(options))
+        {
+            seedContext.Users.Add(new CrowdsageUser { Id = "author", UserName = "authorName" });
+            seedContext.Questions.Add(new Question
+            {
+                Id = Guid.NewGuid(), Title = "How do I map tags?", Content = "C",
+                CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow,
+                AuthorId = "author", Tags = ["dotnet", "dto"]
+            });
+            await seedContext.SaveChangesAsync();
+        }
+
+        await using var context = new CrowdsageDbContext(options);
+        var dto = Assert.Single(await new QuestionsService(context).GetNewQuestionsAsync(null));
+
+        Assert.Equal("How do I map tags?", dto.Title);
+        Assert.Equal(["dotnet", "dto"], dto.Tags);
     }
 
     [Fact]
