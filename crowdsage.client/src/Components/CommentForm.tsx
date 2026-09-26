@@ -1,30 +1,41 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAddQuestionCommentMutation } from '../store/reducers';
+import MarkdownEditor from '../Shared/MarkdownEditor';
+import { useImageUpload } from '../Shared/useImageUpload';
 
 export 
 function CommentForm({questionId}: {questionId: string}) {
   const [text, setText] = useState<string>("");
   const { t } = useTranslation();
+  const uploadImage = useImageUpload();
+  const [uploadingImages, setUploadingImages] = useState(false);
   const [addComment, { isLoading: currentlyAddingComment }] = useAddQuestionCommentMutation();
 
   return (
     <form
-      onSubmit={(e) => {
+      onSubmit={async (e) => {
         e.preventDefault();
-        addComment({data: {content: text}, questionId});
-        setText("");
+        if (!text.trim()) return;
+        try {
+          await addComment({data: {content: text}, questionId}).unwrap();
+          setText("");
+        } catch (error) {
+          console.error("Failed to add comment:", error);
+        }
       }}
       className="mt-3"
     >
-      <div className="flex gap-2">
-        <input
-          className="flex-1 border rounded p-2 text-sm focus:outline-none"
-          placeholder={t('commentForm.placeholder')}
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-        />
-        <button disabled={currentlyAddingComment} type="submit" className="flex items-center justify-center px-3 py-2 bg-gray-100 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+      <MarkdownEditor
+        compact
+        value={text}
+        onChange={setText}
+        uploadImage={uploadImage}
+        onUploadingChange={setUploadingImages}
+        textInputProps={{ placeholder: t('commentForm.placeholder') }}
+      />
+      <div className="mt-2 flex justify-end">
+        <button disabled={currentlyAddingComment || uploadingImages || !text.trim()} type="submit" className="flex items-center justify-center px-3 py-2 bg-gray-100 border rounded text-sm disabled:opacity-50 disabled:cursor-not-allowed">
           {currentlyAddingComment && (
             <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>

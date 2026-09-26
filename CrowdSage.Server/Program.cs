@@ -94,6 +94,9 @@ builder.Services.AddScoped<IAnswerCommentService, AnswerCommentService>();
 builder.Services.AddScoped<IAnswersService, AnswersService>();
 builder.Services.AddScoped<IQuestionCommentService, QuestionCommentService>();
 builder.Services.AddScoped<IUserProfileService, UserProfileService>();
+builder.Services.Configure<MediaStorageOptions>(builder.Configuration.GetSection(MediaStorageOptions.SectionName));
+builder.Services.AddSingleton<IMediaStorage, LocalDiskMediaStorage>();
+builder.Services.AddScoped<IMediaService, MediaService>();
 
 builder.Logging.AddConsole();
 

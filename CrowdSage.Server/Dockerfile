@@ -34,4 +34,9 @@ RUN dotnet publish "./CrowdSage.Server.csproj" -c $BUILD_CONFIGURATION -o /app/p
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+# Pre-create the media directory owned by the app user, so a fresh named volume
+# mounted here inherits that ownership and uploads can be written.
+USER root
+RUN mkdir -p /app/App_Data/media && chown $APP_UID /app/App_Data/media
+USER $APP_UID
 ENTRYPOINT ["dotnet", "CrowdSage.Server.dll"]

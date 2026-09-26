@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import type { QuestionCreatePayload, Answer, AnswerComment, Question, QuestionComment, QuestionCommentCreatePayload, AnswerCommentCreatePayload, AnswerCreatePayload, UpvoteQuestionPayload, UpvoteAnswerPayload, BookmarkQuestionPayload, BookmarkAnswerPayload, RegisterPayload, AnswerWithQuestionId, UserProfile, UserQuestionSummary, UserAnswerSummary, UserCommentSummary, UserActivityPageParams } from '../types';
+import type { QuestionCreatePayload, Answer, AnswerComment, Question, QuestionComment, QuestionCommentCreatePayload, AnswerCommentCreatePayload, AnswerCreatePayload, UpvoteQuestionPayload, UpvoteAnswerPayload, BookmarkQuestionPayload, BookmarkAnswerPayload, RegisterPayload, AnswerWithQuestionId, UserProfile, UserQuestionSummary, UserAnswerSummary, UserCommentSummary, UserActivityPageParams, MediaUpload } from '../types';
 import type { RootState } from '../store';
 
 export interface LoginRequest {
@@ -106,7 +106,8 @@ export const questionsApi = createApi({
             url: `question/${questionId}/comment`,
             method: 'POST',
             body: data
-        })
+        }),
+        invalidatesTags: ['QuestionComment'],
     }),
     editQuestionComment: build.mutation<QuestionComment, EditQuestionCommentParams>({
         query: ({data, questionId}) => ({
@@ -174,7 +175,7 @@ export const questionsApi = createApi({
             method: 'POST',
             body: data
         }),
-        invalidatesTags: (result: AnswerComment | undefined, _error, {answerId}) => result ? [{ type: 'AnswerComment', id: `${answerId}#${result.id}` }] : [],
+        invalidatesTags: ['AnswerComment'],
     }),
     editCommentForAnswer: build.mutation<AnswerComment, {data: AnswerCommentCreatePayload, questionId: string, answerId: string, answerCommentId: string}>({
         query: ({data, questionId, answerId, answerCommentId}) => ({
@@ -209,6 +210,13 @@ export const questionsApi = createApi({
     getUserComments: build.query<UserCommentSummary[], UserActivityPageParams>({
         query: ({userId, page, take}) => `users/${userId}/comments?page=${page}&take=${take}`,
         providesTags: ['QuestionComment', 'AnswerComment'],
+    }),
+    uploadMedia: build.mutation<MediaUpload, File>({
+        query: (file) => {
+            const body = new FormData();
+            body.append('file', file);
+            return { url: 'media', method: 'POST', body };
+        },
     }),
     registerUser: build.mutation<void, RegisterPayload>({
         query: (data) => ({
@@ -260,6 +268,7 @@ export const {
     useRemoveBookmarkQuestionMutation,
     useBookmarkAnswerMutation,
     useRemoveBookmarkAnswerMutation,
+    useUploadMediaMutation,
     useRegisterUserMutation,
     useLoginMutation
 } = questionsApi;
