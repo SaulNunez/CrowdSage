@@ -1,16 +1,37 @@
 import { useRef, useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
+
+// Mirrors what the server accepts (MediaService sniffs for these formats and
+// MediaStorage:MaxBytes defaults to 5 MB), so bad files fail fast client-side.
+const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/gif", "image/webp"];
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
 type Props = {
   value?: string;
   onChange?: (val: string) => void;
   uploadImage?: (file: File) => Promise<string>;
+  onUploadingChange?: (uploading: boolean) => void;
+  compact?: boolean;
   className?: string;
   textInputProps?: React.TextareaHTMLAttributes<HTMLTextAreaElement>;
 };
 
-export default function MarkdownEditor({ value = "", onChange, uploadImage, className = "", textInputProps = {} }: Props) {
+function imageFilesOf(files: FileList | null | undefined) {
+  return Array.from(files ?? []).filter((f) => f.type.startsWith("image/"));
+}
+
+// Keep file names from breaking out of the `![alt](url)` syntax.
+function toAltText(fileName: string) {
+  return fileName.replace(/\.[^.]+$/, "").replace(/[[\]\n\r]/g, " ").trim() || "image";
+}
+
+export default function MarkdownEditor({ value = "", onChange, uploadImage, onUploadingChange, compact = false, className = "", textInputProps = {} }: Props) {
+  const { t } = useTranslation();
   const [text, setText] = useState<string>(value);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  // Latest text for async upload completions, which would otherwise see a stale closure.
+  const textRef = useRef(value);
+  const uploadCounter = useRef(0);
 
   // modals
   const [showLinkModal, setShowLinkModal] = useState(false);
@@ -21,13 +42,25 @@ export default function MarkdownEditor({ value = "", onChange, uploadImage, clas
   const [imageTitle, setImageTitle] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+
+  // inline (paste / drop) uploads
+  const [pendingUploads, setPendingUploads] = useState(0);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   useEffect(() => {
     setText(value);
+    textRef.current = value;
   }, [value]);
 
+  const busy = uploading || pendingUploads > 0;
+  useEffect(() => {
+    onUploadingChange?.(busy);
+  }, [busy, onUploadingChange]);
+
   function updateText(newText: string, newSelection?: { start: number; end: number }) {
+    textRef.current = newText;
     setText(newText);
     onChange?.(newText);
     if (typeof newSelection !== "undefined" && textareaRef.current) {
@@ -193,28 +226,131 @@ export default function MarkdownEditor({ value = "", onChange, uploadImage, clas
     setImageTitle("");
     setImageUrl("");
     setImageFile(null);
+    setImageError(null);
+  }
+
+  function validateImage(file: File): string | null {
+    if (!ACCEPTED_IMAGE_TYPES.includes(file.type)) return t("markdownEditor.unsupportedType", { name: file.name });
+    if (file.size > MAX_IMAGE_BYTES) return t("markdownEditor.tooLarge", { name: file.name, maxMb: MAX_IMAGE_BYTES / (1024 * 1024) });
+    return null;
   }
 
   async function confirmImage() {
     const ta = textareaRef.current;
     if (!ta) return;
+    // Capture before awaiting; the textarea keeps its selection while the modal has focus.
+    const pos = ta.selectionStart;
     let finalUrl = imageUrl;
     if (imageFile && uploadImage) {
+      const invalid = validateImage(imageFile);
+      if (invalid) {
+        setImageError(invalid);
+        return;
+      }
+      setImageError(null);
       setUploading(true);
       try {
         finalUrl = await uploadImage(imageFile);
       } catch (e) {
-        // failed upload - keep provided url
         console.error(e);
+        setImageError(t("markdownEditor.uploadFailed", { name: imageFile.name }));
+        return;
       } finally {
         setUploading(false);
       }
     }
-    const pos = ta.selectionStart;
-    const md = `![${imageTitle || "img"}](${finalUrl || ""})`;
-    const newText = text.slice(0, pos) + md + text.slice(pos);
+    const current = textRef.current;
+    const md = `![${imageTitle || (imageFile ? toAltText(imageFile.name) : "img")}](${finalUrl || ""})`;
+    const newText = current.slice(0, pos) + md + current.slice(pos);
     updateText(newText, { start: pos + md.length, end: pos + md.length });
     setShowImageModal(false);
+  }
+
+  // Swap `search` for `replacement` in the latest text, keeping the caret where the
+  // user left it (a controlled value change would otherwise jump it to the end).
+  function replaceInText(search: string, replacement: string) {
+    const current = textRef.current;
+    const index = current.indexOf(search);
+    if (index === -1) return; // the user deleted the placeholder while it uploaded
+    const newText = current.slice(0, index) + replacement + current.slice(index + search.length);
+    const ta = textareaRef.current;
+    if (ta && document.activeElement === ta) {
+      const delta = replacement.length - search.length;
+      const shift = (p: number) => (p >= index + search.length ? p + delta : Math.min(p, index + replacement.length));
+      updateText(newText, { start: shift(ta.selectionStart), end: shift(ta.selectionEnd) });
+    } else {
+      updateText(newText);
+    }
+  }
+
+  // Inserts a placeholder per file at the caret, uploads them in parallel, then
+  // swaps each placeholder for the final image markdown (or removes it on failure).
+  function uploadInline(files: File[]) {
+    const ta = textareaRef.current;
+    if (!ta || !uploadImage || files.length === 0) return;
+
+    const errors: string[] = [];
+    const valid = files.filter((f) => {
+      const invalid = validateImage(f);
+      if (invalid) errors.push(invalid);
+      return !invalid;
+    });
+    setUploadError(errors.length ? errors.join(" ") : null);
+    if (valid.length === 0) return;
+
+    const uploads = valid.map((file) => {
+      const alt = toAltText(file.name);
+      const placeholder = `![${t("markdownEditor.uploadingPlaceholder", { name: alt })}](#upload-${++uploadCounter.current})`;
+      return { file, alt, placeholder };
+    });
+
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const current = textRef.current;
+    // Start images on their own line rather than gluing them to preceding text.
+    const lead = start > 0 && current[start - 1] !== "\n" ? "\n" : "";
+    const inserted = lead + uploads.map((u) => u.placeholder).join("\n");
+    const newText = current.slice(0, start) + inserted + current.slice(end);
+    updateText(newText, { start: start + inserted.length, end: start + inserted.length });
+
+    setPendingUploads((n) => n + uploads.length);
+    for (const { file, alt, placeholder } of uploads) {
+      uploadImage(file)
+        .then((url) => replaceInText(placeholder, `![${alt}](${url})`))
+        .catch((e) => {
+          console.error(e);
+          replaceInText(placeholder, "");
+          setUploadError(t("markdownEditor.uploadFailed", { name: file.name }));
+        })
+        .finally(() => setPendingUploads((n) => n - 1));
+    }
+  }
+
+  function handlePaste(e: React.ClipboardEvent<HTMLTextAreaElement>) {
+    const images = imageFilesOf(e.clipboardData?.files);
+    if (uploadImage && images.length > 0) {
+      e.preventDefault();
+      uploadInline(images);
+    }
+    textInputProps.onPaste?.(e);
+  }
+
+  function handleDragOver(e: React.DragEvent<HTMLTextAreaElement>) {
+    // Required for the drop event to fire for files.
+    if (uploadImage && e.dataTransfer.types.includes("Files")) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "copy";
+    }
+    textInputProps.onDragOver?.(e);
+  }
+
+  function handleDrop(e: React.DragEvent<HTMLTextAreaElement>) {
+    const images = imageFilesOf(e.dataTransfer.files);
+    if (uploadImage && images.length > 0) {
+      e.preventDefault();
+      uploadInline(images);
+    }
+    textInputProps.onDrop?.(e);
   }
 
   function onCodeBlock() {
@@ -314,7 +450,7 @@ export default function MarkdownEditor({ value = "", onChange, uploadImage, clas
   // toolbar
   return (
     <div className={`markdown-editor ${className}`}>
-      <div className="bg-gray-50 dark:bg-slate-800 border dark:border-slate-700 rounded-t p-2 flex gap-2 items-center text-gray-800 dark:text-gray-200">
+      <div className="bg-gray-50 dark:bg-slate-800 border dark:border-slate-700 rounded-t p-2 flex flex-wrap gap-2 items-center text-gray-800 dark:text-gray-200">
         <div className="flex gap-1">
           <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={onBold} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
@@ -329,6 +465,7 @@ export default function MarkdownEditor({ value = "", onChange, uploadImage, clas
           <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={onInlineCode} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">`code`</button>
         </div>
 
+        {!compact && (
         <div className="ml-2">
           <label className="mr-1">Heading:</label>
           <select
@@ -345,6 +482,7 @@ export default function MarkdownEditor({ value = "", onChange, uploadImage, clas
             <option value={6}>H6</option>
           </select>
         </div>
+        )}
 
         <div className="flex gap-1 ml-2">
           <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={onLinkInsert} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">
@@ -359,6 +497,7 @@ export default function MarkdownEditor({ value = "", onChange, uploadImage, clas
           </button>
         </div>
 
+        {!compact && (<>
         <div className="flex gap-1 ml-2">
           <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={onOrderedList} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
@@ -386,6 +525,7 @@ export default function MarkdownEditor({ value = "", onChange, uploadImage, clas
           <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={onBlockquote} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700" title="Quote">Quote</button>
           <button type="button" onMouseDown={(e) => e.preventDefault()} onClick={onCodeBlock} className="px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700" title="Code Block">Code Block</button>
         </div>
+        </>)}
       </div>
 
       <textarea
@@ -394,19 +534,30 @@ export default function MarkdownEditor({ value = "", onChange, uploadImage, clas
         value={text}
         onChange={(e) => updateText(e.target.value)}
         onKeyDown={handleKeyDown}
-        className="w-full min-h-[240px] p-4 border dark:border-slate-700 rounded-b font-mono text-sm focus:outline-none bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400"
+        onPaste={handlePaste}
+        onDragOver={handleDragOver}
+        onDrop={handleDrop}
+        className={`w-full ${compact ? "min-h-[80px] p-2" : "min-h-[240px] p-4"} border dark:border-slate-700 rounded-b font-mono text-sm focus:outline-none bg-white dark:bg-slate-900 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400`}
       />
+      {uploadImage && (
+        <div className="mt-1 text-xs text-gray-500 dark:text-gray-400" aria-live="polite">
+          {pendingUploads > 0 ? t("markdownEditor.uploadingCount", { count: pendingUploads }) : t("markdownEditor.pasteHint")}
+        </div>
+      )}
+      {uploadError && (
+        <div role="alert" className="mt-1 text-xs text-red-600 dark:text-red-400">{uploadError}</div>
+      )}
 
       {/* Link Modal */}
       {showLinkModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/60 z-50">
           <div className="bg-white dark:bg-slate-800 p-4 rounded shadow-lg w-96 text-gray-900 dark:text-gray-100">
-            <h3 className="font-bold mb-2">Insert Link</h3>
-            <input value={linkTitle} onChange={(e) => setLinkTitle(e.target.value)} placeholder="Title" className="w-full p-2 border dark:border-slate-600 rounded mb-2 bg-white dark:bg-slate-900 focus:outline-none focus:border-blue-500" />
+            <h3 className="font-bold mb-2">{t("markdownEditor.insertLink")}</h3>
+            <input value={linkTitle} onChange={(e) => setLinkTitle(e.target.value)} placeholder={t("markdownEditor.linkTitle")} className="w-full p-2 border dark:border-slate-600 rounded mb-2 bg-white dark:bg-slate-900 focus:outline-none focus:border-blue-500" />
             <input value={linkUrl} onChange={(e) => setLinkUrl(e.target.value)} placeholder="https://..." className="w-full p-2 border dark:border-slate-600 rounded mb-2 bg-white dark:bg-slate-900 focus:outline-none focus:border-blue-500" />
             <div className="flex justify-end gap-2">
-              <button onClick={() => setShowLinkModal(false)} className="px-3 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">Cancel</button>
-              <button onClick={confirmLink} className="px-3 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white transition-colors">Insert</button>
+              <button type="button" onClick={() => setShowLinkModal(false)} className="px-3 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">{t("markdownEditor.cancel")}</button>
+              <button type="button" onClick={confirmLink} className="px-3 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white transition-colors">{t("markdownEditor.insert")}</button>
             </div>
           </div>
         </div>
@@ -416,16 +567,19 @@ export default function MarkdownEditor({ value = "", onChange, uploadImage, clas
       {showImageModal && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/60 z-50">
           <div className="bg-white dark:bg-slate-800 p-4 rounded shadow-lg w-96 text-gray-900 dark:text-gray-100">
-            <h3 className="font-bold mb-2">Insert Image</h3>
-            <input value={imageTitle} onChange={(e) => setImageTitle(e.target.value)} placeholder="Alt text / title" className="w-full p-2 border dark:border-slate-600 rounded mb-2 bg-white dark:bg-slate-900 focus:outline-none focus:border-blue-500" />
+            <h3 className="font-bold mb-2">{t("markdownEditor.insertImage")}</h3>
+            <input value={imageTitle} onChange={(e) => setImageTitle(e.target.value)} placeholder={t("markdownEditor.altText")} className="w-full p-2 border dark:border-slate-600 rounded mb-2 bg-white dark:bg-slate-900 focus:outline-none focus:border-blue-500" />
             <input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://..." className="w-full p-2 border dark:border-slate-600 rounded mb-2 bg-white dark:bg-slate-900 focus:outline-none focus:border-blue-500" />
-            <div className="mb-2">
-              <label className="block text-sm mb-1 text-gray-600 dark:text-gray-400">Or upload a file</label>
-              <input type="file" accept="image/*" onChange={(e) => setImageFile(e.target.files ? e.target.files[0] : null)} className="text-sm" />
-            </div>
+            {uploadImage && (
+              <div className="mb-2">
+                <label className="block text-sm mb-1 text-gray-600 dark:text-gray-400">{t("markdownEditor.orUpload")}</label>
+                <input type="file" accept={ACCEPTED_IMAGE_TYPES.join(",")} onChange={(e) => { setImageFile(e.target.files ? e.target.files[0] : null); setImageError(null); }} className="text-sm" />
+              </div>
+            )}
+            {imageError && <div role="alert" className="mb-2 text-sm text-red-600 dark:text-red-400">{imageError}</div>}
             <div className="flex justify-end gap-2">
-              <button onClick={() => setShowImageModal(false)} className="px-3 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700">Cancel</button>
-              <button onClick={confirmImage} disabled={uploading} className="px-3 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white transition-colors disabled:opacity-50">{uploading ? 'Uploading...' : 'Insert'}</button>
+              <button type="button" onClick={() => setShowImageModal(false)} disabled={uploading} className="px-3 py-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700 disabled:opacity-50">{t("markdownEditor.cancel")}</button>
+              <button type="button" onClick={confirmImage} disabled={uploading} className="px-3 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white transition-colors disabled:opacity-50">{uploading ? t("markdownEditor.uploading") : t("markdownEditor.insert")}</button>
             </div>
           </div>
         </div>

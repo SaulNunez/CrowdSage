@@ -134,3 +134,10 @@ export interface UserActivityPageParams {
     page: number,
     take: number,
 }
+
+export interface MediaUpload {
+    id: string,
+    url: string,
+    contentType: string,
+    sizeBytes: number,
+}

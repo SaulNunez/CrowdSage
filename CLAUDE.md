@@ -16,8 +16,10 @@ dotnet test CrowdSage.Server.Tests             # all tests
 dotnet test CrowdSage.Server.Tests --filter "FullyQualifiedName~QuestionsServiceTests"
 dotnet test CrowdSage.Server.Tests --filter "Name=AddQuestionAsync_NullPayload_ThrowsArgumentNullException"
 
-# EF Core migrations (Npgsql provider; a reachable Postgres is not needed to add one)
-dotnet ef migrations add <Name> --project CrowdSage.Server
+# EF Core migrations (Npgsql provider; a reachable Postgres is not needed to add one).
+# Run from CrowdSage.Server/ — from the repo root, `--project` makes EF evaluate
+# docker-compose.dcproj and fail with "ResolvePackageAssets does not exist".
+cd CrowdSage.Server && dotnet ef migrations add <Name>
 ```
 
 ```bash
@@ -45,6 +47,8 @@ CI (`.github/workflows/unit-tests.yml`) restores, builds Release, and runs the t
 **Auth:** ASP.NET Identity (`CrowdsageUser : IdentityUser`, extended with `ProfilePicObjectKey`) plus OpenIddict in password-grant mode. The only token endpoint is `POST /connect/token` (`AuthorizationController.Exchange`) — note it is *not* under `/api`. Registration is `POST /register` (`AccountController`, which has no `[Route]` attribute, so the action's own template is the full path). Data Protection keys persist to the DB (`IDataProtectionKeyContext`), so tokens survive restarts and multiple instances.
 
 **Database:** `CrowdsageDbContext` extends `IdentityDbContext<CrowdsageUser>` and calls `options.UseOpenIddict()`. `Program.cs` runs `context.Database.Migrate()` at startup via `InitializeDb`, so the app self-migrates on boot. Provider is Npgsql; a SQLite line is commented out next to it and `SqliteDemoDb.db` is a leftover — the Sqlite package is still referenced.
+
+**Media uploads:** `POST /api/media` (authorized, multipart field `file`) → `MediaService` sniffs magic bytes (PNG/JPEG/GIF/WebP only — SVG is deliberately rejected; the client's content type is ignored), enforces `MediaStorage:MaxBytes`, stores the bytes via `IMediaStorage` and a `MediaAsset` row, and returns `/api/media/{id}`. `GET /api/media/{id}` is anonymous because `<img>` tags can't send the bearer token. The only `IMediaStorage` is `LocalDiskMediaStorage` (`MediaStorage:RootPath`, default `App_Data/media`, a named volume in compose); an S3 backend would be a new implementation. On the client, `useImageUpload()` feeds `MarkdownEditor`'s `uploadImage` prop (toolbar modal, paste, drag-drop), and markdown is rendered through `Shared/MarkdownContent` so images are width-constrained. Uploads aren't linked to the posts that embed them, so abandoned drafts leave orphans.
 
 **Frontend state:** RTK Query is the whole data layer. `src/store/reducers.ts` holds every endpoint in a single `questionsApi` with tag-based invalidation (`Question`, `Answer`, `QuestionComment`, `AnswerComment`); answer-scoped tags use composite ids like `` `${questionId}#${answerId}` ``. `src/store/authSlice.ts` holds the bearer token and mirrors it into `localStorage`; `prepareHeaders` in the base query reads it from the Redux state. Base URL comes from `VITE_CROWDSAGE_BACKEND_URL` and is the relative `/api` in every build — `.env.production` sets it for the Docker/published build, where the server hosts the SPA on the same origin, and in dev the Vite proxy forwards it. `reducers.ts` falls back to `/api` when the var is missing, so `crowdsage.client/.env` is optional; it is gitignored (`*.env`), so a fresh clone has none and relies on that fallback. The fallback is also load-bearing: without it an absent value inlines as `undefined` and the top-level `serverRootUrl` computation throws during module evaluation, blanking the page before React mounts. Note `.dockerignore` lists `**/.env`, which matches the exact filename only, so `.env` stays out of the image build while `.env.production` reaches it.
 

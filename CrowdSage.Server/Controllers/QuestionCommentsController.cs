@@ -21,7 +21,9 @@ public class QuestionCommentsController(IQuestionCommentService questionCommentS
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var questionCommentEntity = await questionCommentService.AddCommnentAsync(comment, questionId, userId);
-            return new CreatedAtActionResult(nameof(CreateComment), nameof(QuestionCommentsController), new { id = questionCommentEntity.Id }, comment);
+            // There is no single-comment GET to point a Location header at (CreatedAtAction
+            // threw "No route matches" after the comment was saved), so return the DTO directly.
+            return StatusCode(StatusCodes.Status201Created, questionCommentEntity);
         }
         catch (ArgumentNullException ex)
         {

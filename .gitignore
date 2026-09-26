@@ -299,3 +299,6 @@ __pycache__/
 /CrowdSage.Server/obj/
 /.env
 /.env
+
+# Uploaded media stored by LocalDiskMediaStorage
+App_Data/
