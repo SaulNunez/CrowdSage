@@ -23,7 +23,10 @@ public class AnswerCommentsController(IAnswerCommentService answerCommentService
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var answerCommentEntity = await answerCommentService.AddCommentAsync(comment, answerId, userId);
-            return new CreatedAtActionResult(nameof(CreateComment), nameof(AnswerCommentsController), new { id = answerCommentEntity.Id }, comment);
+            // There is no single-comment GET to point a Location header at (CreatedAtAction
+            // threw "No route matches" after the comment was saved), so return the DTO directly;
+            // the client's cache invalidation needs its id.
+            return StatusCode(StatusCodes.Status201Created, answerCommentEntity);
         }
         catch (ArgumentNullException ex)
         {

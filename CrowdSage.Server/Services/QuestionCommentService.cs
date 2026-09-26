@@ -98,6 +98,7 @@ public class QuestionCommentService(CrowdsageDbContext dbContext) : IQuestionCom
     {
         var comments = await dbContext.QuestionComments
             .Where(c => c.QuestionId == questionId)
+            .Include(c => c.Author)
             .ToListAsync();
 
         return comments.Select(comment => new QuestionCommentDto
