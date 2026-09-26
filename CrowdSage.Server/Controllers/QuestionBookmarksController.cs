@@ -11,12 +11,12 @@ public class QuestionBookmarksController(IQuestionsService questionsService, ILo
 {
     [Authorize]
     [HttpGet()]
-    public IActionResult GetBookmarkedQuestions()
+    public async Task<IActionResult> GetBookmarkedQuestions()
     {
         try
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var bookmarkedQuestions = questionsService.GetBookmarkedQuestions(userId!);
+            var bookmarkedQuestions = await questionsService.GetBookmarkedQuestions(userId!);
             return Ok(bookmarkedQuestions);
         }
         catch (Exception ex)

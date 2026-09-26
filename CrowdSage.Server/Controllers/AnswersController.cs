@@ -24,7 +24,9 @@ public class AnswersController(IAnswersService answersService, ILogger<AnswersCo
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
             var answerEntity = await answersService.AddAnswerAsync(answer, questionId, userId);
-            return new CreatedAtActionResult("GetAnswer", "Answer", new { id = answerEntity.Id }, answer);
+            // There is no single-answer GET to point a Location header at, so return the
+            // created DTO directly; the client's cache invalidation needs its id.
+            return StatusCode(StatusCodes.Status201Created, answerEntity);
         }
         catch (ArgumentNullException ex)
         {

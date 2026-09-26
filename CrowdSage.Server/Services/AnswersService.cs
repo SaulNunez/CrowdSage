@@ -31,6 +31,7 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
             QuestionId = questionId,
             Votes = [],
             Comments = [],
+            UserBookmarks = [],
         };
 
         answerEntity.Votes.Add(new AnswerVote
@@ -41,6 +42,10 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
 
         dbContext.Answers.Add(answerEntity);
         await dbContext.SaveChangesAsync();
+
+        // Only AuthorId was set, and the user is not tracked by this request's context,
+        // so the navigation stays null unless it is loaded explicitly.
+        await dbContext.Entry(answerEntity).Reference(a => a.Author).LoadAsync();
 
         return new AnswerDto
         {
@@ -65,30 +70,30 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
 
     public async Task<IEnumerable<AnswerDto>> GetAnswersForQuestion(Guid questionId, string? userId)
     {
-        var answers = await dbContext.Answers
+        // Projected in the query so EF loads Votes and UserBookmarks; materializing the
+        // entities first with only Author included left both collections null.
+        return await dbContext.Answers
             .Where(a => a.QuestionId == questionId)
-            .Include(a => a.Author)
-            .ToListAsync();
-
-        return answers.Select(a => new AnswerDto
-        {
-            Id = a.Id,
-            CreatedAt = a.CreatedAt,
-            UpdatedAt = a.UpdatedAt,
-            Content = a.Content,
-            Votes = a.Votes.Count(x=> x.Vote == VoteValue.Upvote),
-            CurrentUserVote = a.Votes
-                    .Where(v => v.UserId == userId)
-                    .Select(v => v.Vote)
-                    .FirstOrDefault(),
-            Author = new AuthorDto
+            .Select(a => new AnswerDto
             {
-                Id = a.Author.Id,
-                UserName = a.Author.UserName,
-                UrlPhoto = a.Author.ProfilePicObjectKey
-            },
-            Bookmarked = a.UserBookmarks.Any(ub => ub.UserId == userId)
-        });
+                Id = a.Id,
+                CreatedAt = a.CreatedAt,
+                UpdatedAt = a.UpdatedAt,
+                Content = a.Content,
+                Votes = a.Votes.Count(x=> x.Vote == VoteValue.Upvote),
+                CurrentUserVote = a.Votes
+                        .Where(v => v.UserId == userId)
+                        .Select(v => v.Vote)
+                        .FirstOrDefault(),
+                Author = new AuthorDto
+                {
+                    Id = a.Author.Id,
+                    UserName = a.Author.UserName,
+                    UrlPhoto = a.Author.ProfilePicObjectKey
+                },
+                Bookmarked = a.UserBookmarks.Any(ub => ub.UserId == userId)
+            })
+            .ToListAsync();
     }
 
     public async Task EditAnswer(Guid guid, AnswerPayload answer)
@@ -155,13 +160,13 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
 
     public async Task<List<AnswerWithQuestionId>> GetBookmarkedAnswers(string userId)
     {
-        var bookmarkedAnswers = await dbContext.AnswerBookmarks
+        // Projected in the query so EF loads the navigations; the materialized entities
+        // would have null Votes, UserBookmarks and Author.
+        return await dbContext.AnswerBookmarks
             .Where(b => b.UserId == userId)
             .Select(b => b.Answer)
             .OrderByDescending(a => a.CreatedAt)
-            .ToListAsync();
-
-        return bookmarkedAnswers.Select(a => new AnswerWithQuestionId
+            .Select(a => new AnswerWithQuestionId
         {
             Id = a.Id,
             CreatedAt = a.CreatedAt,
@@ -181,7 +186,7 @@ public class AnswersService(CrowdsageDbContext dbContext) : IAnswersService
             }
             ,
             Bookmarked = a.UserBookmarks.Any(ub => ub.UserId == userId)
-        }).ToList();
+        }).ToListAsync();
     }
 }
 

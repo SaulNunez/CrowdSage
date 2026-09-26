@@ -54,6 +54,90 @@ public class QuestionsServiceTests
     }
 
     [Fact]
+    public async Task AddQuestionAsync_AuthorNotTrackedByContext_ReturnsDtoWithAuthor()
+    {
+        // Mirrors a real request: the author already exists in the database but was
+        // never loaded into the context that handles the POST.
+        var dbName = Guid.NewGuid().ToString();
+        var options = new DbContextOptionsBuilder<CrowdsageDbContext>()
+            .UseInMemoryDatabase(dbName)
+            .Options;
+        await using (var seedContext = new CrowdsageDbContext(options))
+        {
+            seedContext.Users.Add(new CrowdsageUser { Id = "untracked", UserName = "untrackedName" });
+            await seedContext.SaveChangesAsync();
+        }
+
+        await using var context = new CrowdsageDbContext(options);
+        var svc = new QuestionsService(context);
+
+        var dto = await svc.AddQuestionAsync(new QuestionPayload { Title = "T", Content = "C" }, "untracked");
+
+        Assert.Equal("untracked", dto.Author.Id);
+        Assert.Equal("untrackedName", dto.Author.UserName);
+        Assert.False(dto.Bookmarked);
+        Assert.Equal(1, dto.Votes);
+    }
+
+    [Fact]
+    public async Task GetQuestionById_FreshContext_LoadsVotesBookmarksAndAuthor()
+    {
+        var options = new DbContextOptionsBuilder<CrowdsageDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        var questionId = Guid.NewGuid();
+        await using (var seedContext = new CrowdsageDbContext(options))
+        {
+            seedContext.Users.Add(new CrowdsageUser { Id = "author", UserName = "authorName" });
+            seedContext.Questions.Add(new Question
+            {
+                Id = questionId, Title = "T", Content = "C",
+                CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow,
+                AuthorId = "author", Tags = [],
+                Votes = [new QuestionVote { UserId = "author", Vote = Models.Enums.VoteValue.Upvote }],
+                UserBookmarks = [new QuestionBookmark { UserId = "author" }]
+            });
+            await seedContext.SaveChangesAsync();
+        }
+
+        await using var context = new CrowdsageDbContext(options);
+        var dto = new QuestionsService(context).GetQuestionById(questionId, "author");
+
+        Assert.Equal("authorName", dto.Author.UserName);
+        Assert.Equal(1, dto.Votes);
+        Assert.Equal(Models.Enums.VoteValue.Upvote, dto.CurrentUserVote);
+        Assert.True(dto.Bookmarked);
+    }
+
+    [Fact]
+    public async Task GetBookmarkedQuestions_FreshContext_LoadsVotesBookmarksAndAuthor()
+    {
+        var options = new DbContextOptionsBuilder<CrowdsageDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        await using (var seedContext = new CrowdsageDbContext(options))
+        {
+            seedContext.Users.Add(new CrowdsageUser { Id = "author", UserName = "authorName" });
+            seedContext.Questions.Add(new Question
+            {
+                Id = Guid.NewGuid(), Title = "T", Content = "C",
+                CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow,
+                AuthorId = "author", Tags = [],
+                Votes = [new QuestionVote { UserId = "author", Vote = Models.Enums.VoteValue.Upvote }],
+                UserBookmarks = [new QuestionBookmark { UserId = "author" }]
+            });
+            await seedContext.SaveChangesAsync();
+        }
+
+        await using var context = new CrowdsageDbContext(options);
+        var dto = Assert.Single(await new QuestionsService(context).GetBookmarkedQuestions("author"));
+
+        Assert.Equal("authorName", dto.Author.UserName);
+        Assert.Equal(1, dto.Votes);
+        Assert.True(dto.Bookmarked);
+    }
+
+    [Fact]
     public async Task GetQuestionById_ReturnsDto_WithCorrectCurrentUserVote()
     {
         await using var context = CreateInMemoryContext();

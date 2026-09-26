@@ -9,27 +9,30 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
 {
     public QuestionDto GetQuestionById(Guid id, string? userId)
     {
-        var question = dbContext.Questions.Find(id) ?? throw new KeyNotFoundException($"Question with ID {id} not found.");
-
-        return new QuestionDto
-        {
-            Id = question.Id,
-            Content = question.Content,
-            CreatedAt = question.CreatedAt,
-            UpdatedAt = question.UpdatedAt,
-            Bookmarked = question.UserBookmarks.Any(ub => ub.UserId == userId),
-            Votes = question.Votes.Count(v => v.Vote == Models.Enums.VoteValue.Upvote),
-            CurrentUserVote = question.Votes
-                    .Where(v => v.UserId == userId)
-                    .Select(v => v.Vote)
-                    .FirstOrDefault(),
-            Author = new AuthorDto
+        // Projected in the query so EF loads the navigations; Find() would leave
+        // Votes, UserBookmarks and Author null.
+        return dbContext.Questions
+            .Where(q => q.Id == id)
+            .Select(q => new QuestionDto
             {
-                Id = question.Author.Id,
-                UserName = question.Author.UserName,
-                UrlPhoto = question.Author.ProfilePicObjectKey
-            }
-        };
+                Id = q.Id,
+                Content = q.Content,
+                CreatedAt = q.CreatedAt,
+                UpdatedAt = q.UpdatedAt,
+                Bookmarked = q.UserBookmarks.Any(ub => ub.UserId == userId),
+                Votes = q.Votes.Count(v => v.Vote == Models.Enums.VoteValue.Upvote),
+                CurrentUserVote = q.Votes
+                        .Where(v => v.UserId == userId)
+                        .Select(v => v.Vote)
+                        .FirstOrDefault(),
+                Author = new AuthorDto
+                {
+                    Id = q.Author.Id,
+                    UserName = q.Author.UserName,
+                    UrlPhoto = q.Author.ProfilePicObjectKey
+                }
+            })
+            .FirstOrDefault() ?? throw new KeyNotFoundException($"Question with ID {id} not found.");
     }
 
     public async Task<List<QuestionDto>> GetNewQuestionsAsync(string? userId, int take = 10, int offset = 0)
@@ -78,7 +81,8 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
             Tags = [],
             Answers = [],
             Votes = [],
-            Comments = []
+            Comments = [],
+            UserBookmarks = []
         };
 
         questionEntity.Votes.Add(new QuestionVote
@@ -89,6 +93,10 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
 
         dbContext.Questions.Add(questionEntity);
         await dbContext.SaveChangesAsync();
+
+        // Only AuthorId was set, and the user is not tracked by this request's context,
+        // so the navigation stays null unless it is loaded explicitly.
+        await dbContext.Entry(questionEntity).Reference(q => q.Author).LoadAsync();
 
         return new QuestionDto
         {
@@ -173,15 +181,15 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
 
     public async Task<List<QuestionDto>> GetBookmarkedQuestions(string userId, int take = 50, int offset = 0)
     {
-        var bookmarkedQuestions = await dbContext.QuestionBookmarks
+        // Projected in the query so EF loads the navigations; the materialized entities
+        // would have null Votes, UserBookmarks and Author.
+        return await dbContext.QuestionBookmarks
             .Where(b => b.UserId == userId)
             .Select(b => b.Question)
             .OrderByDescending(q => q.CreatedAt)
             .Take(take)
             .Skip(offset)
-            .ToListAsync();
-
-        return bookmarkedQuestions.Select(q => new QuestionDto
+            .Select(q => new QuestionDto
             {
                 Id = q.Id,
                 Content = q.Content,
@@ -200,7 +208,7 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
                     UrlPhoto = q.Author.ProfilePicObjectKey
                 }
             })
-            .ToList();
+            .ToListAsync();
     }
 }
 
