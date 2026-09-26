@@ -163,5 +163,13 @@ static void InitializeDb(WebApplication app)
     {
         Console.WriteLine($"Couldn't find Context {nameof(CrowdsageDbContext)} in Dependency Injection, it might be that the database couldn't intialize correctly.");
     }
-    context?.Database.Migrate();
+    // The integration tests swap in the EF in-memory provider, which has no migrations.
+    if (context?.Database.IsRelational() == true)
+    {
+        context.Database.Migrate();
+    }
+    else
+    {
+        context?.Database.EnsureCreated();
+    }
 }
