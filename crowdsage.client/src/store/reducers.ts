@@ -31,8 +31,10 @@ const apiBaseUrl: string = import.meta.env.VITE_CROWDSAGE_BACKEND_URL ?? '/api';
 
 // The Identity register action and the OpenIddict token endpoint are mapped at
 // the server root instead, so they are built as absolute URLs, which
-// fetchBaseQuery passes through without prepending `baseUrl`.
-const serverRootUrl = apiBaseUrl.replace(/\/api\/?$/, '');
+// fetchBaseQuery passes through without prepending `baseUrl`. It only treats a
+// URL containing `//` as absolute, so a root-relative `/connect/token` would
+// still be joined onto `/api`; resolving against the page origin avoids that.
+const serverRootUrl = new URL(apiBaseUrl.replace(/\/api\/?$/, '/'), window.location.origin).href.replace(/\/$/, '');
 
 export const questionsApi = createApi({
   reducerPath: 'questionsApi',
