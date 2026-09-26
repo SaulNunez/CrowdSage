@@ -36,8 +36,8 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
     {
         var questions = dbContext.Questions
             .OrderByDescending(q => q.CreatedAt)
-            .Take(take)
-            .Skip(offset);
+            .Skip(offset)
+            .Take(take);
         
         return questions.Select(q => new QuestionDto
             {
@@ -177,8 +177,8 @@ public class QuestionsService(CrowdsageDbContext dbContext) : IQuestionsService
             .Where(b => b.UserId == userId)
             .Select(b => b.Question)
             .OrderByDescending(q => q.CreatedAt)
-            .Take(take)
             .Skip(offset)
+            .Take(take)
             .ToListAsync();
 
         return bookmarkedQuestions.Select(q => new QuestionDto
