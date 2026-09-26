@@ -11,12 +11,12 @@ public class AnswerBookmarksController(IAnswersService answersService, ILogger<A
 {
     [Authorize]
     [HttpGet()]
-    public IActionResult GetBookmarkedAnswers()
+    public async Task<IActionResult> GetBookmarkedAnswers()
     {
         try
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var bookmarkedQuestions = answersService.GetBookmarkedAnswers(userId!);
+            var bookmarkedQuestions = await answersService.GetBookmarkedAnswers(userId!);
             return Ok(bookmarkedQuestions);
         }
         catch (Exception ex)

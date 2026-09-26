@@ -28,6 +28,74 @@ public class AnswersServiceTests
         await Assert.ThrowsAsync<ArgumentNullException>(() => svc.AddAnswerAsync(null!, Guid.NewGuid(), "user1"));
     }
 
+    // Seeds through a separate context so the service sees what a real request sees:
+    // rows in the database, nothing tracked.
+    private static async Task<(DbContextOptions<CrowdsageDbContext> Options, Guid QuestionId)> SeedAnsweredQuestionAsync()
+    {
+        var options = new DbContextOptionsBuilder<CrowdsageDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+        var questionId = Guid.NewGuid();
+        await using var seedContext = new CrowdsageDbContext(options);
+        seedContext.Users.Add(new CrowdsageUser { Id = "author", UserName = "authorName" });
+        seedContext.Questions.Add(new Question
+        {
+            Id = questionId, Title = "T", Content = "C",
+            CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow,
+            AuthorId = "author", Tags = []
+        });
+        seedContext.Answers.Add(new Answer
+        {
+            Content = "A", QuestionId = questionId, AuthorId = "author",
+            CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow,
+            Votes = [new AnswerVote { UserId = "author", Vote = Models.Enums.VoteValue.Upvote }],
+            UserBookmarks = [new AnswerBookmark { UserId = "author" }]
+        });
+        await seedContext.SaveChangesAsync();
+        return (options, questionId);
+    }
+
+    [Fact]
+    public async Task AddAnswerAsync_FreshContext_ReturnsDtoWithAuthor()
+    {
+        var (options, questionId) = await SeedAnsweredQuestionAsync();
+        await using var context = new CrowdsageDbContext(options);
+
+        var dto = await new AnswersService(context).AddAnswerAsync(new AnswerPayload { Content = "new" }, questionId, "author");
+
+        Assert.Equal("authorName", dto.Author.UserName);
+        Assert.Equal(1, dto.Votes);
+        Assert.False(dto.Bookmarked);
+    }
+
+    [Fact]
+    public async Task GetAnswersForQuestion_FreshContext_LoadsVotesBookmarksAndAuthor()
+    {
+        var (options, questionId) = await SeedAnsweredQuestionAsync();
+        await using var context = new CrowdsageDbContext(options);
+
+        var dto = Assert.Single(await new AnswersService(context).GetAnswersForQuestion(questionId, "author"));
+
+        Assert.Equal("authorName", dto.Author.UserName);
+        Assert.Equal(1, dto.Votes);
+        Assert.Equal(Models.Enums.VoteValue.Upvote, dto.CurrentUserVote);
+        Assert.True(dto.Bookmarked);
+    }
+
+    [Fact]
+    public async Task GetBookmarkedAnswers_FreshContext_LoadsVotesBookmarksAndAuthor()
+    {
+        var (options, questionId) = await SeedAnsweredQuestionAsync();
+        await using var context = new CrowdsageDbContext(options);
+
+        var dto = Assert.Single(await new AnswersService(context).GetBookmarkedAnswers("author"));
+
+        Assert.Equal("authorName", dto.Author.UserName);
+        Assert.Equal(1, dto.Votes);
+        Assert.Equal(questionId, dto.QuestionId);
+        Assert.True(dto.Bookmarked);
+    }
+
     [Fact]
     public async Task AddAnswerAsync_AddsAnswerAndReturnsDto_WithAuthorAndVote()
     {

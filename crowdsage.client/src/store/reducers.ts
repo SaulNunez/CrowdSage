@@ -226,7 +226,6 @@ export const questionsApi = createApi({
                 grant_type: 'password',
                 username: credentials.username,
                 password: credentials.password,
-                scope: 'offline_access'
             }).toString(),
         }),
     })
