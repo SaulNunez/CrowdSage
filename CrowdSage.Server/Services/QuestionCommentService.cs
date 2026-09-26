@@ -54,7 +54,9 @@ public class QuestionCommentService(CrowdsageDbContext dbContext) : IQuestionCom
 
     public async Task<QuestionCommentDto> GetCommentByIdAsync(Guid id)
     {
-        var comment = await dbContext.QuestionComments.FindAsync(id) ?? throw new KeyNotFoundException($"Comment with ID {id} not found.");
+        var comment = await dbContext.QuestionComments
+            .Include(c => c.Author)
+            .FirstOrDefaultAsync(c => c.Id == id) ?? throw new KeyNotFoundException($"Comment with ID {id} not found.");
         return new QuestionCommentDto
         {
             Id = comment.Id,

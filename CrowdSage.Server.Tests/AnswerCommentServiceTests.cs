@@ -117,6 +117,33 @@ public class AnswerCommentServiceTests
     }
 
     [Fact]
+    public async Task GetCommentByIdAsync_AuthorNotTrackedByContext_ReturnsDtoWithAuthor()
+    {
+        // Seed through one context and call the service through another, as happens across requests
+        var databaseName = Guid.NewGuid().ToString();
+        var user = new CrowdsageUser { Id = "acGFresh", UserName = "gFresh" };
+        var question = new Question { Id = Guid.NewGuid(), Title = "Q", Content = "C", CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow, Tags = new System.Collections.Generic.List<string>(), Answers = new System.Collections.Generic.List<Answer>(), Votes = new System.Collections.Generic.List<QuestionVote>(), Comments = new System.Collections.Generic.List<QuestionComment>(), AuthorId = user.Id, Author = user };
+        var answer = new Answer { Content = "ans", CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow, Author = user, AuthorId = user.Id, Question = question, QuestionId = question.Id, Votes = new System.Collections.Generic.List<AnswerVote>(), Comments = new System.Collections.Generic.List<AnswerComment>() };
+        var comment = new AnswerComment { Content = "c1", CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow, Answer = answer, AnswerId = answer.Id, Author = user, AuthorId = user.Id };
+        await using (var seedContext = CreateInMemoryContext(databaseName))
+        {
+            await seedContext.Users.AddAsync(user);
+            await seedContext.Questions.AddAsync(question);
+            await seedContext.Answers.AddAsync(answer);
+            await seedContext.AnswerComments.AddAsync(comment);
+            await seedContext.SaveChangesAsync();
+        }
+
+        await using var context = CreateInMemoryContext(databaseName);
+        var svc = new AnswerCommentService(context);
+
+        var dto = await svc.GetCommentByIdAsync(comment.Id);
+
+        Assert.Equal(user.Id, dto.Author.Id);
+        Assert.Equal(user.UserName, dto.Author.UserName);
+    }
+
+    [Fact]
     public async Task EditCommentAsync_NullPayload_ThrowsArgumentNullException()
     {
         await using var context = CreateInMemoryContext();
