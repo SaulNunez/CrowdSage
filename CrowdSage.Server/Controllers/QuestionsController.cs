@@ -64,8 +64,8 @@ namespace CrowdSage.Server.Controllers
             try
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var questionEntity = await questionsService.AddQuestionAsync(question, userId);
-                return CreatedAtAction(nameof(GetAction), new { id = questionEntity.Id }, questionEntity);
+                var createdQuestion = await questionsService.AddQuestionAsync(question, userId);
+                return CreatedAtAction(nameof(GetAction), new { id = createdQuestion.Id }, createdQuestion);
             }
             catch (ArgumentNullException ex)
             {
