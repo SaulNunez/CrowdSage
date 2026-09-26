@@ -1,15 +1,13 @@
 import { Link } from "react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useSelector } from "react-redux";
+import type { RootState } from "../store";
 
-interface NavBarProps {
-  isAuthenticated: boolean;
-  userName?: string;
-}
-
-export default function NavBar({ isAuthenticated, userName }: NavBarProps) {
+export default function NavBar() {
   const [search, setSearch] = useState("");
   const { t } = useTranslation();
+  const isAuthenticated = useSelector((state: RootState) => !!state.auth.token);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,18 +38,11 @@ export default function NavBar({ isAuthenticated, userName }: NavBarProps) {
         </Link>
 
         {isAuthenticated ? (
-          userName? (
-            <div className="flex items-center justify-center w-10 h-10 bg-gray-100 dark:bg-gray-800 rounded-full">
-                <span className="text-gray-600 dark:text-gray-300 font-medium">AB</span>
-            </div>
-          ) : (
-          <img
-            className="w-10 h-10 rounded-full"
-            src="https://via.placeholder.com/150"
-            alt="User Avatar"
-            />)
+          <Link to="/profile" className="text-gray-700 dark:text-gray-300 hover:underline">
+            {t('navBar.profile')}
+          </Link>
         ) : (
-          <Link to="/signin" className="text-gray-700 dark:text-gray-300 hover:underline">
+          <Link to="/auth/login" className="text-gray-700 dark:text-gray-300 hover:underline">
             {t('navBar.signIn')}
           </Link>
         )}

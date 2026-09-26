@@ -12,13 +12,14 @@ import { store } from './store.ts'
 import CreateQuestionPage from './Screens/CreateQuestionPage.tsx'
 import NavBar from './Components/NavBar.tsx'
 import BookmarksScreen from './Screens/BookmarksPage.tsx'
+import ProfilePage from './Screens/ProfilePage.tsx'
 
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <Provider store={store}>
       <BrowserRouter>
-        <NavBar isAuthenticated={false} />
+        <NavBar />
         <Routes>
           <Route index element={<App />} />
           <Route path="question">
@@ -26,7 +27,9 @@ createRoot(document.getElementById('root')!).render(
             <Route path="new" element={<CreateQuestionPage />} />
           </Route>
           <Route path="profile">
+            <Route index element={<ProfilePage />} />
             <Route path="bookmarks" element={<BookmarksScreen />} />
+            <Route path=":userId" element={<ProfilePage />} />
           </Route>
           <Route path="auth">
             <Route path="login" element={<Login />} />
