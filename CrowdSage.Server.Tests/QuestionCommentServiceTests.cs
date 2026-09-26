@@ -272,4 +272,30 @@ public class QuestionCommentServiceTests
         Assert.Equal(2, list.Count);
         Assert.All(list, item => Assert.NotNull(item.Author));
     }
+
+    [Fact]
+    public async Task GetCommentsForQuestion_AuthorNotTrackedByContext_ReturnsDtosWithAuthor()
+    {
+        // Seed through one context and call the service through another, as happens across requests
+        var databaseName = Guid.NewGuid().ToString();
+        var user = new CrowdsageUser { Id = "qcLFresh", UserName = "qlFresh" };
+        var question = new Question { Id = Guid.NewGuid(), Title = "Q", Content = "C", CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow, Tags = new System.Collections.Generic.List<string>(), Answers = new System.Collections.Generic.List<Answer>(), Votes = new System.Collections.Generic.List<QuestionVote>(), Comments = new System.Collections.Generic.List<QuestionComment>(), AuthorId = user.Id, Author = user };
+        var comment = new QuestionComment { Content = "c1", CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow, Question = question, QuestionId = question.Id, Author = user, AuthorId = user.Id };
+        await using (var seedContext = CreateInMemoryContext(databaseName))
+        {
+            await seedContext.Users.AddAsync(user);
+            await seedContext.Questions.AddAsync(question);
+            await seedContext.QuestionComments.AddAsync(comment);
+            await seedContext.SaveChangesAsync();
+        }
+
+        await using var context = CreateInMemoryContext(databaseName);
+        var svc = new QuestionCommentService(context);
+
+        var list = await svc.GetCommentsForQuestion(question.Id);
+
+        var dto = Assert.Single(list);
+        Assert.Equal(user.Id, dto.Author.Id);
+        Assert.Equal(user.UserName, dto.Author.UserName);
+    }
 }
