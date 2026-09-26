@@ -23,12 +23,15 @@ public class AnswerCommentService(CrowdsageDbContext dbContext) : IAnswerComment
             throw new ArgumentNullException(nameof(comment), "Comment cannot be null.");
         }
 
+        var author = await dbContext.Users.FindAsync(userId) ?? throw new KeyNotFoundException($"User with ID {userId} not found.");
+
         var answerCommentEntity = new AnswerComment
         {
             Content = comment.Content,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             AuthorId = userId,
+            Author = author,
             AnswerId = answerId
         };
 
@@ -52,7 +55,9 @@ public class AnswerCommentService(CrowdsageDbContext dbContext) : IAnswerComment
 
     public async Task<AnswerCommentDto> GetCommentByIdAsync(Guid id)
     {
-        var comment = await dbContext.AnswerComments.FindAsync(id) ?? throw new KeyNotFoundException($"Comment with ID {id} not found.");
+        var comment = await dbContext.AnswerComments
+            .Include(c => c.Author)
+            .FirstOrDefaultAsync(c => c.Id == id) ?? throw new KeyNotFoundException($"Comment with ID {id} not found.");
 
         return new AnswerCommentDto
         {
