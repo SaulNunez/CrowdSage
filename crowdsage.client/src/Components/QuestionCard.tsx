@@ -8,7 +8,7 @@ export function QuestionCard({question} : {question: Question}) {
   return (
   <article
     key={question.id}
-    onClick={() => navigate(`/questions/${question.id}`)}
+    onClick={() => navigate(`/question/${question.id}`)}
     className="bg-white dark:bg-gray-800 rounded-2xl shadow p-6 flex flex-col gap-4 transition hover:shadow-md hover:-translate-y-1 cursor-pointer border dark:border-gray-700"
   >
     {/* Title + bookmark */}

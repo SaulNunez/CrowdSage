@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import type { QuestionCreatePayload, Answer, AnswerComment, Question, QuestionComment, QuestionCommentCreatePayload, AnswerCommentCreatePayload, AnswerCreatePayload, UpvoteQuestionPayload, UpvoteAnswerPayload, BookmarkQuestionPayload, BookmarkAnswerPayload, RegisterPayload, AnswerWithQuestionId } from '../types';
+import type { QuestionCreatePayload, Answer, AnswerComment, Question, QuestionComment, QuestionCommentCreatePayload, AnswerCommentCreatePayload, AnswerCreatePayload, UpvoteQuestionPayload, UpvoteAnswerPayload, BookmarkQuestionPayload, BookmarkAnswerPayload, RegisterPayload, AnswerWithQuestionId, UserProfile, UserQuestionSummary, UserAnswerSummary, UserCommentSummary, UserActivityPageParams } from '../types';
 import type { RootState } from '../store';
 
 export interface LoginRequest {
@@ -190,6 +190,26 @@ export const questionsApi = createApi({
     getBookmarkedAnswers: build.query<AnswerWithQuestionId[], void>({
         query: () => `answer/bookmark`,
     }),
+    getMyProfile: build.query<UserProfile, void>({
+        query: () => `users/me`,
+        providesTags: ['Question', 'Answer', 'QuestionComment', 'AnswerComment'],
+    }),
+    getUserProfile: build.query<UserProfile, string>({
+        query: (userId) => `users/${userId}`,
+        providesTags: ['Question', 'Answer', 'QuestionComment', 'AnswerComment'],
+    }),
+    getUserQuestions: build.query<UserQuestionSummary[], UserActivityPageParams>({
+        query: ({userId, page, take}) => `users/${userId}/questions?page=${page}&take=${take}`,
+        providesTags: ['Question'],
+    }),
+    getUserAnswers: build.query<UserAnswerSummary[], UserActivityPageParams>({
+        query: ({userId, page, take}) => `users/${userId}/answers?page=${page}&take=${take}`,
+        providesTags: ['Answer'],
+    }),
+    getUserComments: build.query<UserCommentSummary[], UserActivityPageParams>({
+        query: ({userId, page, take}) => `users/${userId}/comments?page=${page}&take=${take}`,
+        providesTags: ['QuestionComment', 'AnswerComment'],
+    }),
     registerUser: build.mutation<void, RegisterPayload>({
         query: (data) => ({
             url: `${serverRootUrl}/register`,
@@ -231,6 +251,11 @@ export const {
     useEditCommentForAnswerMutation,
     useGetBookmarkedQuestionsQuery,
     useGetBookmarkedAnswersQuery,
+    useGetMyProfileQuery,
+    useGetUserProfileQuery,
+    useGetUserQuestionsQuery,
+    useGetUserAnswersQuery,
+    useGetUserCommentsQuery,
     useBookmarkQuestionMutation,
     useRemoveBookmarkQuestionMutation,
     useBookmarkAnswerMutation,

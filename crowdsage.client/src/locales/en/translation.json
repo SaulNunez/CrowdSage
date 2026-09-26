@@ -20,7 +20,8 @@
   "navBar": {
     "searchPlaceholder": "Search questions...",
     "newQuestion": "New Question",
-    "signIn": "Sign In"
+    "signIn": "Sign In",
+    "profile": "Profile"
   },
   "questionCard": {
     "askedBy": "Asked by ",
@@ -30,5 +31,26 @@
     "title": "Server Error",
     "message1": "An unexpected error occurred while trying to fetch data from the server.",
     "message2": "Please try again later or contact support if the issue persists."
+  },
+  "profilePage": {
+    "questionsTab": "Questions",
+    "answersTab": "Answers",
+    "commentsTab": "Comments",
+    "questionCount_one": "{{count}} question",
+    "questionCount_other": "{{count}} questions",
+    "answerCount_one": "{{count}} answer",
+    "answerCount_other": "{{count}} answers",
+    "commentCount_one": "{{count}} comment",
+    "commentCount_other": "{{count}} comments",
+    "votes_one": "{{count}} vote",
+    "votes_other": "{{count}} votes",
+    "noQuestions": "No questions yet.",
+    "noAnswers": "No answers yet.",
+    "noComments": "No comments yet.",
+    "on": "On",
+    "onAnswerTo": "On an answer to",
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page {{page}}"
   }
 }
