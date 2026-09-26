@@ -11,10 +11,10 @@ namespace CrowdSage.Server.Tests;
 
 public class QuestionCommentServiceTests
 {
-    private static CrowdsageDbContext CreateInMemoryContext()
+    private static CrowdsageDbContext CreateInMemoryContext(string? databaseName = null)
     {
         var options = new DbContextOptionsBuilder<CrowdsageDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .UseInMemoryDatabase(databaseName ?? Guid.NewGuid().ToString())
             .Options;
         return new CrowdsageDbContext(options);
     }
@@ -79,6 +79,29 @@ public class QuestionCommentServiceTests
 
         var inDb = await context.QuestionComments.FirstOrDefaultAsync(c => c.Content == payload.Content && c.QuestionId == question.Id);
         Assert.NotNull(inDb);
+    }
+
+    [Fact]
+    public async Task AddCommnentAsync_AuthorNotTrackedByContext_ReturnsDtoWithAuthor()
+    {
+        // Seed through one context and call the service through another, as happens across requests
+        var databaseName = Guid.NewGuid().ToString();
+        var user = new CrowdsageUser { Id = "qcUserFresh", UserName = "qcFresh" };
+        var question = new Question { Id = Guid.NewGuid(), Title = "Q", Content = "C", CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow, Tags = new System.Collections.Generic.List<string>(), Answers = new System.Collections.Generic.List<Answer>(), Votes = new System.Collections.Generic.List<QuestionVote>(), Comments = new System.Collections.Generic.List<QuestionComment>(), AuthorId = user.Id, Author = user };
+        await using (var seedContext = CreateInMemoryContext(databaseName))
+        {
+            await seedContext.Users.AddAsync(user);
+            await seedContext.Questions.AddAsync(question);
+            await seedContext.SaveChangesAsync();
+        }
+
+        await using var context = CreateInMemoryContext(databaseName);
+        var svc = new QuestionCommentService(context);
+
+        var dto = await svc.AddCommnentAsync(new QuestionCommentPayload { Content = "nice comment" }, question.Id, user.Id);
+
+        Assert.Equal(user.Id, dto.Author.Id);
+        Assert.Equal(user.UserName, dto.Author.UserName);
     }
 
     [Fact]

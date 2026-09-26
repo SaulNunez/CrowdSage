@@ -11,10 +11,10 @@ namespace CrowdSage.Server.Tests;
 
 public class AnswerCommentServiceTests
 {
-    private static CrowdsageDbContext CreateInMemoryContext()
+    private static CrowdsageDbContext CreateInMemoryContext(string? databaseName = null)
     {
         var options = new DbContextOptionsBuilder<CrowdsageDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .UseInMemoryDatabase(databaseName ?? Guid.NewGuid().ToString())
             .Options;
         return new CrowdsageDbContext(options);
     }
@@ -55,6 +55,31 @@ public class AnswerCommentServiceTests
 
         var inDb = await context.AnswerComments.FirstOrDefaultAsync(c => c.Content == payload.Content && c.AnswerId == answer.Id);
         Assert.NotNull(inDb);
+    }
+
+    [Fact]
+    public async Task AddCommentAsync_AuthorNotTrackedByContext_ReturnsDtoWithAuthor()
+    {
+        // Seed through one context and call the service through another, as happens across requests
+        var databaseName = Guid.NewGuid().ToString();
+        var user = new CrowdsageUser { Id = "acUserFresh", UserName = "acFresh" };
+        var question = new Question { Id = Guid.NewGuid(), Title = "Q", Content = "C", CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow, Tags = new System.Collections.Generic.List<string>(), Answers = new System.Collections.Generic.List<Answer>(), Votes = new System.Collections.Generic.List<QuestionVote>(), Comments = new System.Collections.Generic.List<QuestionComment>(), AuthorId = user.Id, Author = user };
+        var answer = new Answer { Content = "ans", CreatedAt = DateTimeOffset.UtcNow, UpdatedAt = DateTimeOffset.UtcNow, Author = user, AuthorId = user.Id, Question = question, QuestionId = question.Id, Votes = new System.Collections.Generic.List<AnswerVote>(), Comments = new System.Collections.Generic.List<AnswerComment>() };
+        await using (var seedContext = CreateInMemoryContext(databaseName))
+        {
+            await seedContext.Users.AddAsync(user);
+            await seedContext.Questions.AddAsync(question);
+            await seedContext.Answers.AddAsync(answer);
+            await seedContext.SaveChangesAsync();
+        }
+
+        await using var context = CreateInMemoryContext(databaseName);
+        var svc = new AnswerCommentService(context);
+
+        var dto = await svc.AddCommentAsync(new AnswerCommentPayload { Content = "nice" }, answer.Id, user.Id);
+
+        Assert.Equal(user.Id, dto.Author.Id);
+        Assert.Equal(user.UserName, dto.Author.UserName);
     }
 
     [Fact]

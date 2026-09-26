@@ -161,22 +161,22 @@ namespace CrowdSage.Server.Controllers
         }
 
         [Authorize]
-        [HttpPost("{answerId}/vote")]
-        public async Task<IActionResult> VoteOnQuestion(Guid answerId, [FromBody] VoteInput voteInput)
+        [HttpPost("{questionId}/vote")]
+        public async Task<IActionResult> VoteOnQuestion(Guid questionId, [FromBody] VoteInput voteInput)
         {
             try
             {
                 var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                await questionsService.VoteOnQuestion(answerId, userId!, voteInput);
+                await questionsService.VoteOnQuestion(questionId, userId!, voteInput);
                 return Ok();
             }
             catch (KeyNotFoundException)
             {
-                return NotFound($"Question with ID {answerId} not found.");
+                return NotFound($"Question with ID {questionId} not found.");
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error voting for question with ID {answerId}.", answerId);
+                logger.LogError(ex, "Error voting for question with ID {questionId}.", questionId);
                 return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
             }
         }

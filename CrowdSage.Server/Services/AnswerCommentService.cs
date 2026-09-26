@@ -23,12 +23,15 @@ public class AnswerCommentService(CrowdsageDbContext dbContext) : IAnswerComment
             throw new ArgumentNullException(nameof(comment), "Comment cannot be null.");
         }
 
+        var author = await dbContext.Users.FindAsync(userId) ?? throw new KeyNotFoundException($"User with ID {userId} not found.");
+
         var answerCommentEntity = new AnswerComment
         {
             Content = comment.Content,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
             AuthorId = userId,
+            Author = author,
             AnswerId = answerId
         };
 
